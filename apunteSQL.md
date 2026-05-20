@@ -2,7 +2,7 @@
 
 Fuentes:
 
-- "Databases, the complete book", chapter 6, Ullman.
+- "Databases, the complete book", chapter 6 y 7, Ullman.
 
 ## Características
 
@@ -706,3 +706,112 @@ WHERE length <= 120 OR length > 120;
 ```
 
 No devuelve toda la relación Movies, porque si una tupla tiene length **NULL**, entonces la condición evalúa a **UNKNOWN** y no se considera esa tupla en la relación resultante.
+
+## Constraints and Triggers
+
+- ***active elements***: Son expresiones/declaraciones que escribimos una vez y se almacenan en la base de datos, esperando que se ejecuten cuando ocurra un evento específico.
+
+- Podemos manejar desde *backend* los chequeos de que los datos sean correctos o podemos delegarselo al **DBMS** admin de la base de datos.
+
+### Keys and Foreign Keys
+
+#### **Foreign key constraint**
+
+Se asegura que si un atributo de una tabla es *foreign key* de otra, el valor de este debe aparecer como componente de la *primary key* de la otra relación.
+
+##### ¿Cómo las declaramos?
+
+- El atributo al que hagamos referencia en la segunda relación debe ser **UNIQUE** o **PRIMARY KEY** de dicha relación.
+- Si tenemos una *foreign key* $F$ que referencia a un set de atributos $G$ de otra relación, asumiendo que una tupla de la primer relación no tiene valores **NULL** en los atributos de $F$, entonces los valores de esa tupla para los atributos de $G$ deben coincidir con los de otra tupla en la segunda relación para los atributos de $G$.
+- Podemos declarar *foreign keys* que referencien otros atributos de la relación actual.
+- Si el atributo de nuestra tabla que es *foreign key* tiene valor **NULL**, no requerimos que en la tabla a la que referencia haya una tupla con **NULL** en el atributo referenciado, que como debe ser key solo podría tomar el valor **NULL** si fuera el atributo fuera declarado como **UNIQUE** es ves de como **PRIMARY KEY**.
+- Si la *foreign key* es sobre un solo atributo, entonces lo declaramos:
+
+```SQL
+    <atributo> REFERENCES <otra tabla>(<atributo de otra tabla>)
+
+    CREATE TABLE Studio (
+    name CHAR(30) PRIMARY KEY,
+    address VARCHAR(255),
+    presC# INT REFERENCES MovieExec(cert#)
+    );
+```
+
+- Si es una lista de atributos, entonces en la lista de atributos del **CREATE TABLE** ponemos:
+
+```SQL
+    FOREIGN KEY (<atributo>) REFERENCES <otra tabla>(<atributo de otra tabla>)
+
+    CREATE TABLE Studio (
+    name CHAR(30) PRIMARY KEY,
+    address VARCHAR(255),
+    presC# INT,
+    FOREIGN KEY (presC#) REFERENCES MovieExec(cert#)
+    );
+```
+
+##### Si la declaramos... ¿Qué cosas previene?
+
+Para mantener la **integridad referencial** el **DBMS** lanza una excepción o un error en run time si sucede alguna de las siguientes acciones: Supongamos que tenemos una relación $A$ con un atributo $a$ que es *foreign key* de otro atributo $b$ *key* de otra relación $B$.
+
+1. Si intentamos insertar([**INSERT**](#insert)) una tupla en $A$ cuyo valor para $a$ no es **NULL** y no está en el componente $b$ de ninguna tupla de $B$.
+2. Si intentamos modificar ([**UPDATE**](#update)) una tupla de $A$ para poner en $a$ un valor que no aparece en el atributo $b$ de ninguna tupla de $B$.
+3. Si intentamos borrar ([**DELETE**](#delete)) de $B$ una tupla cuyo valor para el atributo $b$ no es **NULL** y aparece como valor del atributo $a$ de alguna tupla en $A$.
+4. Si intentamos modificar ([**UPDATE**](#update)) una tupla de $B$ cambiando el valor del atributo $b$ el cuál tenía una tupla en $A$ con dicho valor para el atributo $a$.
+
+$1 \lor{} 2 \Rightarrow{rechazar~modificación}$
+
+$3 \lor{} 4 \Rightarrow{}$ *default policy* $\lor{}$ *cascade policy* $\lor{}$ *set-null policy*
+
+- ***Default policy***: Rechazar toda modificación no cumpla esto.
+
+- ***Cascade policy***: Actualizar/borrar valor de atributo en $a$ de tupla en relación $A$.
+
+- ***Set-Null policy***: Cambiar a **NULL** valor en atributo $a$ de tupla de $A$.
+
+Estas políticas se definen al momento de declarar la *foreign key*. Podemos elegir una para [**UPDATE**](#update) y otra para [**DELETE**](#delete)
+
+```SQL
+CREATE TABLE Studio (
+    name CHAR(30) PRIMARY KEY,
+    address VARCHAR(255),
+    presC# INT REFERENCES MovieExec(cert#)
+        ON DELETE SET NULL
+        ON UPDATE CASCADE
+);
+```
+
+##### ***Dangling tuples***
+
+Una ***dangling tuple*** es una tupla con un valor de *foreign key* que no aparece en la relación referenciada. Estas tuplas tampoco participarán en un [**JOIN**](#join--on) ya que si es sobre igualdad entre valor de atributo *foreign key* y el atributo *key*.
+
+##### Posponer chequeo de ***constraints***
+
+Si tenés una relación $A$ con un atributo $a$ que es *foreign key* de otro atributo $b$ de otra relación $B$, y querés añadir una nueva tupla a $A$ con un valor para $a$ que no se encuentra en ninguna tupla en $B$, entonces para preservar la [*foreign key constraint*](#foreign-key-constraint) podés:
+
+1. Agregar la tupla a $A$ pero con valor **NULL** en atributo $a$, añadir tupla correspondiente a $B$ con ese nuevo valor en atributo $b$ y finalmente cambiar valor de atributo $a$ de la tupla añadida en $A$ al nuevo valor.
+2. Agregar nueva tupla a $B$ con nuevo valor en $b$ y después añadir tupla a $A$ con nuevo valor en $a$.
+
+Esto se rompe si el grafo de referencias tiene un ciclo, por ejemplo si $a$ es *foreing key* de $b$ en $A$ y $b$ es *foreign key* de $a$ en $B$. Para solucionar eso podemos:
+
+1. Agrupamos los dos [**INSERT**](#insert) en una sola transacción.
+2. Le decimos al **DBMS** que no chequee las *constaints* hasta que haya terminado esa transacción.
+
+Para ello debemos seguir a la declaración de cada *key*, *foreign key* o otra *constaint* de keyword **DEFERRABLE** o **NOT DEFERRABLE**, siendo este último el valor por default.
+
+- **NOT DEFERRABLE**: Se chequea inmediatamente después del *statement* de modificación si esta puede romper *constaint*.
+- **DEFERRABLE**: Esperar a que la transacción se complete.
+  - **INITIALLY DEFERRED**: Se pospone chequeo hasta justo antes de que transacción haga *commit*.
+  - **INITIALLY IMMEDIATE**: Se realiza el chequeo inmediatamente después de cada *statement*.
+
+```SQL
+CREATE TABLE Studio (
+    name CHAR(30) PRIMARY KEY,
+    address VARCHAR(255),
+    presC# INT UNIQUE
+    REFERENCES MovieExec(cert#)
+    DEFERRABLE INITIALLY DEFERRED
+);
+```
+
+Podemos definirlo también para *constaints* propias. Por ejemplo si definimos la *constraint* con nombre <**ConstaintName**>, podemos definir su comporamiento ante estos casos con: `SET CONSTRAINT <ConstaintName> DEFERRED;` y deshacerlo con `SET CONSTRAINT <ConstaintName> IMMEDIATE;`
