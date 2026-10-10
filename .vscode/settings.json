@@ -1,0 +1,5 @@
+{
+    "dataworkspace.excludedProjects": [
+        "sql-server-optimizationdb/DataSources/Optimizacion/Optimizacion.sqlproj"
+    ]
+}
