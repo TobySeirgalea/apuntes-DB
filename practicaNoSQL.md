@@ -173,3 +173,13 @@ Consulta: Buscar todos los autores que escribieron en una fecha dada.
 
 ### Ejercicio 2.4
 
+El modelo lo hice pensando que es un juego donde los enemigos están fijados por la máquina y no es multijugador con otros usuarios.
+
+![Modelo para base de datos key-value](./images/ej2.4.drawio.svg)
+
+En el caso de ser multijugador sería:
+
+![Modelo para el caso multijugador](./images/ej2.4.multiplayer.drawio.svg)
+
+### Ejercicio 2.5
+
