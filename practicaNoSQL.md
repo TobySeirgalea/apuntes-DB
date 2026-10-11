@@ -119,3 +119,57 @@ Solución propuesta:
 }
 ```
 
+### Ejercicio 2.3
+
+Utilizamos el algoritmo de *Chebotko*.
+
+<ins>**Recordar** Una tabla por cada consulta</ins>.
+
+Consulta: Buscar todos los artículos que citan a un artículo dado. Se debe devolver fecha y título de los artículos citados.
+
+**MR1:** Información que nos interesaría obtener en la consulta.
+    - Fecha del citado.
+    - Título del citado.
+
+**MR2:** ¿Queremos buscar por igualdad de atributos? Sí, por aquellos que citen al artículo recibido. Entonces agregamos ese atributo sobre el que haremos la igualdad como *partition key (K)*. En este caso para ver si citan a mi artículo necesito ver si mí título aparece entre las referencias de ese otro artículo, así que agrego título del citado como *partition key (K)*.
+
+**MR3:** ¿Queremos hacer una consulta filtrando por una desigualdad? No.
+
+**MR4:** ¿Nos importa un orden en específico? No.
+
+**MR5:** ¿Nos alcanza con título del citado para identificar unívocamente al citador? No, porque un título puede ser citado por muchos artículos distintos, entonces necesitamos el título del citador. Lo agregamos como *cluster key (C)*, eligiendo un orden cualquiera.
+
+**¿Hay columnas estáticas?:** Si alguna columna es dependiente funcionalmente de *partition key (K)*, entonces la agregamos como *static column (S)*. En este caso "Título del citado" es *partition key (K)* y dado un título solo puede haber sido publicado en una fecha, entonces "Fecha del citado" es *static column (S)*.
+
+![Tabla ejercicio 2.3.a](./images/ej2.3.a.drawio.svg)
+
+Consulta: Buscar todos los autores que escribieron en una fecha dada.
+
+**MR1:** ¿Qué información nos interesa obtener en la consulta?
+    - Nombre (Nombre del autor).
+    - Apellido (Apellido del autor).
+    - Título (Título de la obra).
+    - Fecha (Fecha de escritura).
+    - Afiliación (esta se podría omitir).
+
+**MR2:** ¿Es una consulta por igualdad sobre un atributo? Sí, sobre la fecha. Entonces ponemos fecha como *partition key (K)*.
+
+**MR3:** ¿Es una consulta sobre una desigualdad? No.
+
+**MR4:** ¿Nos piden un orden específico? No.
+
+**MR5:** ¿Alcanza con fecha para identificar unívocamente a los distintos autores? No porque en una misma fecha muchos autores pudieron haber escrito, incluso un mismo autor pudo haber escrito dos o más libros en una misma fecha, para eso necesitamos Nombre, Apellido y Título $\therefore$ Los agregamos como *cluster key (C)* con un orden cualquiera.
+
+**¿Hay algún atributo que sea dependendiente funcionalmente de la *partition key (K)*?:** Sí,
+    - Dado un Nombre y Apellido solo puede haber una Afiliación.
+    - Dado un título, este puede tener solo una fecha de escritura.
+    $\therefore$ Agregamos Afiliación y Fecha como *static columns (S)*.
+
+![Ejercicio 2.3 b](./images/ej2.3.b.drawio.svg)
+
+- Si no te interesaba saber qué libro escribió y solo el nombre del autor entonces quedaría así.
+
+![Ejercicio 2.3 b alternativa](./images/ej2.3.b.alt.drawio.svg)
+
+### Ejercicio 2.4
+
