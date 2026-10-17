@@ -622,3 +622,134 @@ Finalmente nos queda la siguiente tabla:
 **¿Algún atributo depende de una *partition key (K)*?, de ser así lo marco como *static column (S)***. No.
 
 ![Ejercicio 2.8.b consulta 2](./images/ej2.8.b.consulta2.drawio.svg)
+
+### Ejercicio 2.9
+
+![Ejercicio 2.9 DER dado](./images/ej2.9.der.drawio.svg)
+
+#### Item *document based*
+
+- *"La impresión de invitaciones es una de las tareas más frecuentes. En las mismas se imprime toda la info de la cena incluyendo los nombres de platos/postres."*
+  - Hago una incrustación de `NombrePlato` y `NombrePostre` en `Cena`, así en una sola consulta se puede obtener todo lo necesario para las invitaciones.
+- *"Ocasionalmente se consultan miembros de alguna especialidad, pero no es algo que se haga muy seguido".*
+  - Como solo se los consulta ocasionalmente, puedo referenciarlos en `Especialidad` y que solo cuando se los necesite se pueda acceder a ellos, en vez de obtenerlos con cada consulta.
+- *"Es frecuente consultar las fechas en las cuales un miembro organizó cenas".*
+  - Se me ocurren dos opciones:
+    - Incrustar un arreglo de los atributos `Fecha` de la entidad `Cena` en `Miembro`.
+    - Crear un documento auxiliar `Cenas_de_miembro` con `idMiembro`, `idCena` como claves y `Fecha` como atributo (en caso de que un miembro solo pueda realizar una cena en una fecha entonces podría sacar `idCena` y dejar `Fecha` con `idMiembro` como claves).
+  - Como no se me indica que la cantidad de cenas organizadas por un miembro quede enormemente, entonces puedo usar la incrustación.
+
+> Consultar: ¿Conviene una u otra? ¿Hay info en el enunciado que no estoy viendo?.
+
+![Ejercicio 2.9 DID](./images/ej2.9.did.drawio.svg)
+
+**JSONSchema**:
+
+- Para `Miembro`:
+
+```JSON
+"Miembro":{
+    "type": "object",
+    "properties": {
+        "idMiembro":{"type": "integer"},
+        "domicilio":{"type": "string"},
+        "DNI":{"type": "integer"},
+        "Nombre":{"type": "string"},
+        "Apellido":{"type": "string"},
+        "fecha_cenas": {"type": "array", "items": {"type": "string", "format": "date-time"}} 
+    },
+    "additionalProperties": {"value": False},
+    "required": ["idMiembro"]
+}
+```
+
+- Para `Especialidad`:
+
+```JSON
+"Especialidad":{
+    "type": "object",
+    "properties": {
+        "idEspecialidad":{"type": "integer"},
+        "nombre":{"type": "string"},
+        "miembros": {"type": "array", 
+            "items": {"type": "integer"}
+        }
+    },
+    "additionalProperties": {"value": False},
+    "required": ["idEspecialidad"]
+}
+```
+
+- Para `Cena`:
+
+```JSON
+"Cena":{
+    "type": "object",
+    "properties": {
+        "idCena":{"type": "integer"},
+        "fecha":{"type": "string", "format": "date-time"},
+        "costo":{"type": "integer", "minimum": 0},
+        "NombrePostre":{"type": "string"},
+        "NombrePlato":{"type": "string"}
+    },
+    "additionalProperties": {"value": False},
+    "required": ["idCena"]
+}
+```
+
+#### Item *column-family*
+
+**Recordar: Chebotko, una tabla por consulta.**
+
+- *1) "Nombres y apellidos de los miembros invitados a una cena"*.
+
+**MR1:** ¿Qué información queremos retornar con la consulta? `Nombre` y `Apellido` del `Miembro`.
+
+**MR2:** ¿Filtramos por igualdad sobre algún/os atributo/s?, de ser así, lo/s agregamos como *partition key (K)* Sí, por `idCena`.
+
+**MR3:** ¿Filtramos por desigualdad sobre algún/os atributo/s?, de ser así, lo/s agregamos como *cluster key (C)* con orden conveniente. No.
+
+**MR4:** ¿Nos piden algún orden?, de ser así, agregamos dicho/s atributo/s como *cluster key (C)* con el orden. No.
+
+**MR5:** ¿Alcanza con lo que tenemos para identificar unívocamente a todos los atributos?, sino agregamos lo necesario como *cluster key (C)* con un orden cualquiera. Debemos agregar `idMiembro` ya que podemos tener varios con el mismo `Nombre` y `Apellido`.
+
+**Algún atributo es de una entidad que tenga como clave a la *partition key (K)*, de ser así ese es una *static column(S)***. No.
+
+<ins>*Diagrama de *Chebotko**</ins>
+
+![Ejercicio 2.9.b consulta 1 Diagrama Chebotko](./images/2.9.chebotko.consulta1.drawio.svg)
+
+- *2) "Todas las cenas preparadas por un miembro dado desde el año 2015, ordenadas por costo de menor a mayor"*.
+
+<ins>*Diagrama de *Chebotko**</ins>
+
+**MR1:** ¿Qué información queremos retornar con la consulta? `idCena` y `Costo` del `Fecha`.
+
+**MR2:** ¿Filtramos por igualdad sobre algún/os atributo/s?, de ser así, lo/s agregamos como *partition key (K)* Sí, por `idMiembro`.
+
+**MR3:** ¿Filtramos por desigualdad sobre algún/os atributo/s?, de ser así, lo/s agregamos como *cluster key (C)* con orden conveniente. Sí, sobre `Fecha` de `Cena`, el orden depende de si lleva mucho tiempo activo el club o no, en dicho caso nos conviene orden descendente. En cambio si inició más cerca del 2015 que de la actualidad, nos conviene ascendente. Como no aclaran elijo uno cualquiera.
+
+**MR4:** ¿Nos piden algún orden?, de ser así, agregamos dicho/s atributo/s como *cluster key (C)* con el orden. Sí, por `Costo` en orden ascendente.
+
+**MR5:** ¿Alcanza con lo que tenemos para identificar unívocamente a todos los atributos?, sino agregamos lo necesario como *cluster key (C)* con un orden cualquiera. Debemos agregar `idCena` ya que podemos tener varias cenas en una misma fecha y con un mismo costo.
+
+**Algún atributo es de una entidad que tenga como clave a la *partition key (K)*, de ser así ese es una *static column(S)***. No.
+
+![Ejercicio 2.9.b consulta 2 Diagrama Chebotko](./images/2.9.chebotko.consulta2.drawio.svg)
+
+#### Item *key-value*
+
+*"Realizar el diseño para una base de datos Key-Value que permita guardar y consultar la información de miembros (según DER). La aplicación que usaría la base de datos ingresa con el DNI del miembro y una password. Inmediatamente ve sus datos y su especialidad. Luego tiene dos opciones: consultar sus invitaciones o las cenas que preparó".*
+
+<ins>**Consideraciones del diseño:**</ins>
+
+- *"La aplicación que usaría la base de datos ingresa con el DNI del miembro y una password."*:
+  - Esto me indica que necesito un diccionario que dado `password` y `DNI` me retorne el `idMiembro`.
+- *"Inmediatamente ve sus datos y su especialidad."*:
+  - Entonces con el `idMiembro` debo poder acceder a un diccionario, pongamosle la constante `user_data`, que me retorna un hash con sus datos (`Nombre`, `Apellido`, `Domicilio`, `DNI`), y a otro, pongamosle como constante `especialidad` que me retorne el `idEspecialidad`, luego con eso podría acceder a otro para obtener el `Nombre` de la especialidad.
+- *"Luego tiene dos opciones: consultar sus invitaciones o las cenas que preparó".*:
+  - Puedo tener un diccionario para cada una, al cual acceda mediante `idMiembro`:
+    - El primero que me retorne una lista de `idInvitación` con los que pueda acceder a otro con la información propia de la invitación como `FechaEnvio`, `Aceptada`.
+    - El segundo que me retorne una lista de `idCena` con los que pueda acceder a otro diccionario con la información propia de la cena como `Fecha`, `Costo`.
+
+![Ejercicio 2.9.c key-value](./images/2.9.key-value.drawio.svg)
