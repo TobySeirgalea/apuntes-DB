@@ -3,24 +3,62 @@
 ## Conceptuales
 
 - Describa brevemente limitaciones de las base de datos relacionales y con qué características las base de datos *NoSQL* mitigan este problema.
+  - Las limitaciones de las bases de datos relacionales son:
+    - Velocidad insuficiente.
+    - Alto costo.
+    - Esquemas estrictos, poca flexibilidad.
+    - Garantizar ACID.
+    - Suelen escalar más verticalmente.
+  - ¿Con qué características mitigan estos problemas las bases *NoSQL*?:
+    - Cambiar *consistencia estricta/fuerte* (lecturas siempre retornan el valor más reciente del item leído) por ***consistencia eventual*** (operaciones de lectura ven, conforme pasa el tiempo, las escrituras. Solo en estado de equilibrio se devuelve el último valor escrito).
+    - Cambiando el esquema de datos, pasando de relaciones a esquemas más flexibles.
+    - Son más escalables horizontalmente, lo que suele ser menos costoso que verticalmente.
+    - Son más laxas con las propiedades ACID.
 
 - Describa los cuatro tipos de base de datos *NoSQL*.
+  - *Document based*: Es <ins>no-relacional</ins> y almacena los datos como documentos estructurados (JSON, BSON, XML, etc).
+  - *Column-family/wide column*:
+  - *Key-value*: Bases de datos no relacionales que almacenan la información en diccionario clave-valor. 
+  - *Graph databases*: Bases de datos no relacionales donde la información se almacena en una estructura de grafo. Facilitan descubrir relaciones complejas entre los datos que con otros tipos de bases de datos serían más difíciles.
 
 - ¿Qué es un espacio de nombres o *bucket* en una base de datos *Key-Value*?.
+  - En las bases *key-value* no hay columnas, por lo que no hay forma de saber la semántica que tiene un valor sino hacemos que recaiga esa responsabilidad sobre la clave.
+  - Esto genera la posibilidad de conflictos entre claves, que si las múltiples aplicaciones que comparten una base de datos y justo pueden coincidir en la clave si quieren hacer la misma tarea, ya que se busca que los nombres de las claves no sean ambiguos. Entonces al enviar la misma clave a la base de datos, esta no puede saber con qué diccionario responder a cada una, ya que ambas lo llaman igual. Para eso están los *namespaces*, que permiten distinguir claves aunque se llamen igual y evitar estos conflictos.
 
 - ¿De ejemplos de uso de TTL (time to live) en una base *Key-Value*?.
+    - Si solo queremos que la información persista por un periodo de tiempo predeterminado y no queremos tener que tomarnos el trabajo de borrarla de forma manual, podemos asignarle ese tiempo de vida.
+    - Sirve para almacenar datos temporales mientras procesamos otra cosa.
 
 - Compare *Key-Value* con *Document Database*, de ventajas y desventajas de una u otra.
+    - *Key-value* es más óptima cuando priorizamos alta disponibilidad a corto plazo por sobre tamaño y persistencia. Si tenemos una alta y constante demanda de la información conviene poder accederla rápidamente que guardarla de forma estructurada.
+    - *Key-value* tiene una estructura más simple que las bases de datos *document based*. Dada la clave obtenemos un menor volumen de información y más rápido que en *document based* donde podemos agrupar mayor cantidad de información en una sola consulta.
+    - Las *Key-value* son altamente particionables, mientras que en las *document based* se prioriza obtener más información de una.
+    - Las *document based* tienen esquemas más flexibles, mientras que las *key-value*, dado un diccionario la estructura del valor que guarda la definimos con él.
 
 - Discuta ventajas y desventajas de que una *Document Database* sea *schemaless*.
+  - Permite un esquema de datos más flexible, podemos modificar un documento sin tener que modificar todos los demás o llenando con nulls los valores en los otros.
+  - No exige que todos los documentos sigan una misma estructura, como sí sucede en las tablas del modelo relacional.
+  - No validación del esquema del documento, aunque algunas sí que lo ofrecen.
+  - Se puede almacenar los datos en el mismo formato en que se los necesita recibir, evitando tener que pasar por una capa de traducción extra previa, como sería realizar operaciones de SQL.
+  - Entre sus desventajas se encuentra la replicación de la información, dificultad para mantener la consistencia de los datos.
 
 - ¿En qué casos puede ser conveniente desnormalizar?.
+  - Si se prioriza *alta disponibilidad* por sobre *consistencia*.
+  - Si no nos importa pagar el costo extra por replicación de la información.
+  - Si queremos obtener más información en una sola consulta.
 
 - Compare las *Column Family Databases* con otros tipos de bases de datos *NoSQL*.
+    - Facilita almacenar grandes volúmenes de información conjunta para obtener los datos en una única consulta.
 
 - ¿A que se denomina *consistencia eventual*?.
+  - Operaciones de lectura ven, conforme pasa el tiempo, las escrituras. Solo en estado de equilibrio se devuelve el último valor escrito.
 
-- Explique el *teorema CAP*.
+- Explique el *teorema CAP*:
+  - No se puede tener *C*, *A* y *P* en simultáneo, a lo sumo podés tener 2 <ins>en cualquier sistema de datos compartidos</ins>.
+  - **C**: *Consistencia*, que todos vean los mismos datos al mismo tiempo.
+  - **A**: *Availability/Disponibilidad*, que todo request recibido por un nodo fuera de estado de falla debe ser respondido.
+  - **P**: *Partition tolerance*, que el *cluster* puede sobrevivir a roturas de comunicación que lo dividan con partes incomunicadas entre sí.
+  - La **P** la querés porque los sistemas siempre pueden fallar.
 
 ## Modelado
 
@@ -785,12 +823,97 @@ Finalmente nos queda la siguiente tabla:
 - *"Cuando el usuario entra al sistema debe poder ver rápidamente una lista de los documentos con los que opera (subject, fecha y etiquetas asignadas a ellos por él) ordenados por fecha"*.
   - Incrusto la etiquetas asignadas a los `Documentos` por el `Usuario`.
   - Incrusto los `Documentos` en `Usuario` para que pueda acceder rápidamente a ellos.
+  - **Ojo, si incrusto todo, la doble incrustación contiene información redudante, por ejemplo tendríamos en nombre y apellido repetidos en el JSONSchema del usuario**.
 - *"Al acceder a un documento es importante contar con todos los adjuntos disponibles"*.
   - Incrustamos los `Adjuntos` en `Documentos` y eliminamos `Adjuntos`.
 - *"Al visualizar un documento debe poder verse los nombres de los usuarios que operan con él"*.
   - Incrustamos en `Documentos` los atributos `nombre`, y `apellido` del `Usuario`.
 
+> **Consultar: No me cierra la doble incrustación**.
+
 ![Ejercicio 10 DID](./images/2.10.did.drawio.svg)
+
+**<ins>JSONSchema de los tengan al menos un nivel de anidamiento:</ins>**
+
+- Para `Documentos`:
+
+```JSON
+"Documentos":{
+    "type": "object",
+    "properties": {
+        "id": {
+            "type": "integer"
+        },
+        "timestamp": {
+            "type": "string",
+            "format": "date-time"
+        },
+        "subject": {
+            "type": "string"
+        },
+        "body": {
+            "type": "string"
+        },
+        "adjuntos": {
+            "type": "array", 
+            "items": {
+                "type": "object",
+                "properties": {
+                    "type":      {"type": "string"},
+                    "filename":  {"type": "string"},
+                    "contenido": {"type": "string"}
+                },
+                "additionalProperties": {"value": False},
+                "required": ["id"]
+            }
+        },
+        "etiquetas": {
+            "type": "object",
+            "properties": {
+                "nombre": {"type": "string"},
+                "color": {"type": "string"}
+            }
+        },
+        "usuario": {
+            "type": "object",
+            "properties": {
+                "nombre": {"type": "string"},
+                "apellido": {"type": "string"}
+            }
+        }
+    }
+}
+```
+
+- Para `Usuario`:
+
+```JSON
+"Usuario": {
+    "type": "object",
+    "properties": {
+        "nombre": {"type": "string"},
+        "apellido": {"type": "string"},
+        "telefono": {"type": "integer"},
+        "username": {"type": "string"},
+        "documentos": {
+            "type": "array",
+            "items": {
+                "type": "object", 
+                "properties": {
+                    "id": {"type": "integer"},
+                    "timestamp": {"type": "string", "format": "date-time"},
+                    "subject": {"type": "string"},
+                    "body": {"type": "string"}
+                },
+                "additionalProperties": {"value": False},
+                "required": ["id"],
+            }
+        }
+    },
+    "additionalProperties": {"value": False},
+    "required": ["username"]
+}
+```
 
 #### Item b) *column family*
 
@@ -810,7 +933,7 @@ Finalmente nos queda la siguiente tabla:
 
 **MR5:** ¿Nos alcanza con lo que tenemos para tener una clave de la tabla resultante? (de no ser así, añadimos los atributos necesarios como *cluster key (C)* con cualquier orden). Sí.
 
-**¿Algún/os atributo/s depende totalmente de la *partition key (K)*? (de ser así, los marcamos como *static columns (S)*).
+**¿Algún/os atributo/s depende totalmente de la *partition key (K)*? (de ser así, los marcamos como *static columns (S)**).
 
 ![Ejercicio 10 Chebotko consulta 1](./images/2.10.chebotko1.drawio.svg)
 
