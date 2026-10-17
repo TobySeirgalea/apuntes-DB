@@ -8,6 +8,8 @@ En este modelo cada grupo tiene una lista con las claves (idUsuario) de sus miem
 
 ![Ejercicio 1 a](./images/ej2.1.a.drawio.svg)
 
+> **Si sólo se permiten que las interrelaciones N:M pasen a DID con doble referenciación, ¿Cómo puedo proponer 3 distintas que sean válidas? RTA: En las diapositivas solo se ve el caso de la doble referenciación, pero no es una restricción obligatoria, es decir, también podés aplicar incrustación. Lo importante es que el modelo cumpla lo que te piden.**
+
 En este modelo cada grupo guarda una lista con las claves (idUsuario) de sus miembros y cada usuario tiene un documento incrustado con la información del grupo al que pertenece.
 
 ![Ejercicio 1 b](./images/ej2.1.b.drawio.svg)
@@ -57,7 +59,7 @@ Solución propuesta:
 - Para no perder la posibilidad de dado un libro saber a qué editorial pertenece y sus datos debemos incorporar una referencia en ellos a su editorial, en este caso utilizo un id para cada editorial y los libros lo conservan como propiedad.
 - Como utilizo ids para los libros y para las editoriales les pongo un prefijo con la primer letra de cada entidad para evitar que coincidan los ids de libros con los de editoriales.
 
-> Consulta: ¿Es necesario esto último?
+> Consulta: ¿Es necesario esto último? No, no es necesario. Si bien estás guardando una lista de ids que son números, la semántica de esos números la aporta el nombre de la propiedad en el **JSONSchema**.
 
 ```JSON
 {
@@ -67,7 +69,7 @@ Solución propuesta:
     "fecha_pub": ISODate("2010-09-24"),
     "paginas": 216,
     "idioma": "English",
-    "editorial": 'E1'
+    "editorial": 'E1' //No hace falta, con poner el id alcanza
 }
 
 {
@@ -77,7 +79,7 @@ Solución propuesta:
     "fecha_pub": ISODate("2011-05-06"),
     "paginas": 68,
     "idioma": "English",
-    "editorial": 'E1'
+    "editorial": 'E1'//No hace falta, con poner el id alcanza
 }
 
 {
@@ -85,7 +87,7 @@ Solución propuesta:
     "nombre": "O’Reilly Media",
     "fundada": 1980,
     "ubicacion": "CA",
-    "publicaciones" : ['L1', 'L2']
+    "publicaciones" : ['L1', 'L2'] //No hace falta, con poner la lista con los ids alcanza
 }
 ```
 
@@ -171,6 +173,8 @@ Consulta: Buscar todos los autores que escribieron en una fecha dada.
 
 ![Ejercicio 2.3 b alternativa](./images/ej2.3.b.alt.drawio.svg)
 
+> Columna es *static column (S)* ←→ Es determinado por la *partition key (K)*.
+
 ### Ejercicio 2.4
 
 El modelo lo hice pensando que es un juego donde los enemigos están fijados por la máquina y no es multijugador con otros usuarios.
@@ -185,8 +189,10 @@ En el caso de ser multijugador sería:
 
 - *"Las propiedades de tamaño pequeño son accedidas generalmente en conjunto"* $\therefore$ Hago que nombre, género, dirección y teléfono se encuentren como valores en el mismo diccionario. Elijo `Hash`, pero también podría haber elegido `List`.
 - *"Las propiedades de tamaño grande son leídas cuando un usuario busca su información"* Imagino que se refiere a que solo se las lee cuando se busca esa información (clave, mensajes de voz o imagen) específicamente, así que los puedo tener en diccionarios separados.
-- *"Al actualizar los datos de las claves públicas son siempre actualizadas al mismo tiempo"*, entonces conviene que esté en el mismo diccionario ambas. Elijo un tipo `List` porque son 2 y tanto para la última como para la primera tenga $\mathcal{O}(1)$.
+- *"Al actualizar los datos de las claves públicas son siempre actualizadas al mismo tiempo"*, entonces conviene que esté en el mismo diccionario ambas. ~~Elijo un tipo `List` porque son 2 y tanto para la última como para la primera tenga $\mathcal{O}(1)$~~ Usar un hash parece más apropiado ya que la cantidad es fija (solo dos claves y no nos dicen que puede variar la cantidad de claves en el tiempo).
 - *"Tanto la imagen como el mensaje de voz pueden ser actualizados en forma independiente de las otras cosas"* $\therefore$ Los pongo en diccionarios individuales. Para la imagen utilicé un tipo `JSON` que debería contener datos comúnes como tamaño, formato, path, etc. En cambio para los mensajes de voz, al ser varios quería utilizar `List` pero no sabía qué tipo poner a cada uno, entonces utilicé un `JSON` que también debería contener información estándar.
+
+> Si no sé que tipo de los primitivos es más apropiado ¿Pongo un JSON con algunas propiedades que me parezcan acertadas?.
 
 ![Ejercicio 5](./images/ej2.5.drawio.svg)
 
@@ -195,6 +201,10 @@ En el caso de ser multijugador sería:
 #### Base de datos *key-value*
 
 ![Ejercicio 2.6.a](./images/ej2.6.a.drawio.svg)
+
+> **Corrección del diseño**: (**Validar**) Me dijeron que conviene tener un único camino de entrada a un diccionario, incluso aunque existieran varios, como en este caso que tanto de `'door'` como de `'card_roles'` podés acceder a `'roles'`, conviene solo poner un camino en el diagrama. Esto se debe a que querés evitar inconsistencias, por ejemplo en este caso podrías tener una puerta que tenga roles a los que les permite pasar por ella pero que ella no esté entre las puertas permitidas para ese rol. Respecto a la flecha de `'attempts_data'` hacia `'door'` no es necesaria porque solo te permitiría saber qué roles tenían permitido pasar por esa puerta, pero eso ya lo podés saber con el camino de `'card_status'` → `'card_roles'` → `'roles'`.
+
+> **Duda:** ¿Qué me garantiza que haya consistencia entre la lista de roles permitidos de `'door'` y la de puertas permitidas de `'roles'`? ¿Y que `door_number` del diccionario `attempts_data` sea sobre una puerta de `'door'`?¿Y qué el valor de `allowed` sea coherente con el rol de la tarjeta y la puerta por la que se intentó pasar?
 
 <ins>***Idea del diseño:***</ins>
 
@@ -205,9 +215,13 @@ En el caso de ser multijugador sería:
 - El diccionario con los intentos de accesos *attempts_data* que contiene la información detallada del intento, como en qué momento fue (*timestamp*), en qué puerta (*door_number*) y si fue concedido o no (*allowed*).
 - Finalmente está el diccionario con las puertas, el cual usa como clave el número identificador de la puerta y retorna una lista con los roles que pueden accederla.
 
-> ¿Cuando usar hash y cuando list?¿Si es información tipo un *struct* entonces puedo usar hash o JSON, pero si son varios de un mismo tipo entonces list?. ¿Se pueden anidar, tipo en la caja del valor poner List Hash role: string, id: Int?
+> ¿Cuando usar hash y cuando list?: **RTA:** Si es una cantidad que puede variar de elementos del mismo tipo entonces usás list. Si es una cantidad fija, de distinto tipo, como un struct de C, usás hash.
+
+> **Duda** ¿Se pueden anidar, tipo en la caja del valor poner List Hash role: string, id: Int o esos ya es un indicador de que hay algo del diseño que va mal? ¿En qué casos usaría un JSON?
 
 #### Base de datos *document-based*
+
+> Generalmente te van a dar un DER y sobre ese generás tu DID.
 
 **DER:** Sobre este vamos a partir para realizar el **DID**.
 ![DER Ejercicio 2.6.b](./images/ej2.6.b.der.drawio.svg)
@@ -224,11 +238,14 @@ Una variante sería en vez de tener el atributo `permitido` que sería un *bool*
 
 *<ins>Decisiones de diseño:</ins>*
 
+- Como son todas relaciones M:N, debemos aplicar referenciación en ambos sentidos, pero eso no nos alcanza para lo que necesitamos, ya que en `puerta` sólo tendríamos el `identificador` de cada `tarjeta` que haya intentado acceder, sin saber cuándo ni si fue concedido o denegado el acceso.
 - Como la cantidad de intentos de accesos a puertas puede llegar a ser enormemente grande a lo largo del tiempo, queremos tenerla en un documento aparte. Creamos un documento auxiliar llamado `accesos`.
 - Como es más probable que dado un acceso se quiera saber también sobre qué puerta fue realizado o intentado, añado una referencia a `puerta` en el documento auxiliar.
 - Utilizamos los atributos de la interrelación M:N (`timestamp` y `permitido`) en el documento.
-- Como nos interesa saber el rol que tiene una tarjeta al momento de consultar por ella realizamos una incrustación de la entidad `Rol` en `Tarjeta`.
-- Con argumento similar, al consultar por una puerta nos interesa saber en la misma consulta cuáles roles tienen permitido su acceso, entonces incrustamos la entidad `Rol` en `Puerta`.
+- Nos interesa saber el rol que tiene una tarjeta al momento de consultar por ella pero como es una **M:N** tendremos una lista con las referencias de los `Rol` en `Tarjeta` y en `Rol` una lista con cada `identificador` de tarjeta con ese `Rol`.
+- Con argumento similar, al consultar por una puerta nos interesa saber en la misma consulta cuáles roles tienen permitido su acceso, y por ser **M:N** entonces tendremos una lista con referencias a cada `Rol` que tiene permitido acceso, análogamente en cada `Rol` tendremos una lista con el número de cada `Puerta` por la que nos permite pasar.
+
+> **Las interrelaciones M:N <ins>SIEMPRE</ins> se pasan a DID con doble referenciación.** (¿Sin excepción?) **RTA:** No necesariamente, en las diapositivas quedó expresado así, pero eso no significa que no sean válidas las incrustaciones o incrustación y referenciación.
 
 ![DID Ejercicio 2.6.b](./images/ej2.6.b.did.drawio.svg)
 
@@ -238,4 +255,152 @@ Una variante sería en vez de tener el atributo `permitido` que sería un *bool*
 - Por la incrustación de los roles con permiso de pasar por cada puerta en las puertas, seguimos sabiendo qué roles pueden ingresar por cada una.
 - Por la incrustación de los roles en la tarjeta sabemos qué roles tiene cada tarjeta.
 
-> **Importante consultar este ejercicio.** ¿Está bien lo de replicar los atributos?¿Qué hacemos en los DID cuando es una relación M:N?¿La consigna se refería a que se quiere pasar la misma información que se tenía en la base key value a una de documentos una vez se desactiva la tarjeta, entonces no nos interesaría también saber quién la tenía y con qué rol?¿Se le asigna un/unos rol/es cada vez que se entrega la tarjeta o las tarjetas vienen con roles definidos y solo decidimos cuál otorgar?¿No me interesaría tener una en la document based quién pidió esa tarjeta en un intervalo de tiempo?
+> *¿Está bien lo de replicar los atributos?* Sí, en tu **DID** no vas a tener la relación que surge del M:N. Podés llevarte atributos de las entidades involucradas cuando hacés un documento auxiliar o agregar unos nuevos que consideres necesarios, incluso esos podrían ser claves.
+
+>**Consultar:** ¿Qué hacemos en los DID cuando es una relación M:N de la cual queremos guardar su información? ¿Hacemos lo que hice en este ejercicio?
+
+- En el caso en que las tarjetas puedan ir cambiando de rol y que estos no estén fijados para cada tarjeta, entonces me interesaría saber qué rol tuvo una tarjeta en un intervalo de tiempo. Para eso podría añadir otro documento auxiliar que se desprenda de la interrelación `contiene` con atributos <ins>nombre del rol</ins>, <ins>identificador de la tarjeta</ins>, <ins>timestamp retiro de la tarjeta</ins> y <ins>timestamp devolución de la tarjeta</ins>.
+
+> La consigna se refería a que se quiere pasar la misma información que se tenía en la base key value a una de documentos una vez se desactiva la tarjeta, entonces ¿no nos interesaría también saber quién la tenía y con qué rol? en el enunciado no se habla de asociar personas a las tarjetas, como que le da igual ese dato y solo quiere llevar registro de qué tarjeta quiso pasar por tal puerta y si tenía permiso o no. Quizás asociar personar a tarjetas sería una extensión del enunciado posible, habría que añadir una entidad persona, una interrelación con tarjeta que podría ser M:N y de ella sacar un documento auxiliar para guardar esa información.
+
+### Ejercicio 2.7
+
+#### Item *Document based*
+
+<ins>**Consideraciones de diseño:**</ins>
+
+- *"Cuando se consulta una reserva se necesita conocer el detalle de la habitación reservada, los datos del cliente que hizo la reserva y, eventualmente, la lista de pasajeros"*:
+    - Como solo *eventualmente* (y no inmediatamente) necesito la lista de pasajeros, que también son clientes, entonces puedo tener una lista de referencias a ellos.
+    -   Como necesito conocer el detalle de la habitación reservada al momento de la consulta de la `reserva`, entonces hago una incrustación de esta en la `reserva`. Lo mismo para los datos del `cliente` que hizo la reserva, entonces la incrusto en el documento de `reserva`.
+- *"El precio de la habitación puede cambiar con el tiempo, por lo que se necesita saber a qué precio se reservó la habitación en su momento"*:
+    - Entonces no puedo incrustar el `precio` de la `habitación` en el documento de `reserva`, por lo que solo incrusto el `número` y la `categoría`.
+    - Creamos un **documento auxiliar** para los precios por reserva.
+        - Le incrustamos el atributo `precio` de la entidad `habitación`.
+        - ~~Le ponemos como clave el `idReserva` para indicar que se van a diferenciar por ese valor, ya que solo puede tener un precio, y no varios, la habitación en una reserva específica.~~ Ponemos en ese documento auxiliar una referencia a la `reserva`, por lo que tendrá entre sus propiedades el `idReserva`. Así al utilizarlo y querer saber con qué precio se hizo una reserva en particular, podemos acceder al documento que tenga su `idReserva`.
+        > Consultar sobre el siguiente razonamiento:
+        - Como puede que los precios varien mucho y ese documento auxiliar crezca mucho, entonces:
+            - No me conviene incrustarlo, además que a cada reserva le importa solo su precio.
+            - Si hago que `reserva` referencie al documento auxiliar, entonces voy a tener dos campos con la misma información, ya que el documento auxiliar lo pensé para que utilice `idReserva` como clave.
+            > ¿Puedo agregar en un documento auxiliar un atributo que no esté en ninguna de las entidades con las que se lo relaciona? Sí, incluso puede ser clave. (**Validar**)
+            - Entonces propongo que el documento auxiliar sea el que referencie a `reserva`, así incorpora su `idReserva`, que será utilizado como clave en él y evitamos que quede repetido. Para eso cada vez que se quisiera saber con qué precio se hizo una reserva se debe buscar en el documento auxiliar la entrada con el `idReserva`.
+    - **A la relación `Se aloja` aplicamos las referencia en ambos lados por ser M:N**.
+
+> En el ejemplo del apunte de mediciones termina eliminando `mediciones` ¿es porque es debil o hay otra razón?
+
+![DID Ejercicio 2.7.a](./images/ej2.7.did.drawio.svg)
+
+<ins>**JSONSchema** asociado</ins>
+
+Realizamos uno para cada documento:
+
+- Para **Cliente**:
+
+    ```JSON
+    "Cliente": {
+        "type": "object",
+        "properties": {
+            "idCliente": {"type": "integer"},
+            "apellido": {"type": "string"},
+            "nombre": {"type": "string"},
+            "seAlojan": {"type": "array", "items": {"type": "integer"}}
+        },
+        "additionalProperties": {"value": "false"}, //Lo pongo por seguridad,
+        "required": ["idCliente"] //Pongo la clave en required
+    }
+    ```
+
+- Para **Habitación**:
+
+    ```JSON
+    "Habitación": {
+        "type": "object",
+        "properties": {
+            "nro": {"type": "integer"},
+            "precio": {"type": "number", "minimum": 0},
+            "categoria": {"type": "string"}
+        },
+    "additionalProperties": {"value": "false"}, //Lo pongo por seguridad,
+    "required": ["nro"] //Pongo la clave en required
+    }
+    ```
+
+- Para **Reserva**:
+
+    ```JSON
+    "Reserva": {
+        "type": "object",
+        "properties": {
+            "FechaDesde": {"type": "string", "format": "date-time"},
+            "idReserva": {"type": "integer"},
+            "FechaHasta": {"type": "string", "format": "date-time"},
+            "seAlojan": {"type": "array", "items":{"type": "integer"}},
+            "Habitacion": {"type": "object",
+                "properties": {
+                    "nro": {"type": "integer"},
+                    "categoria": {"type": "string"}
+                },
+                "additionalProperties": {"value": "false"},
+                "required": ["nro"]
+                },
+            "Cliente": {"type": "object", 
+                "properties": {
+                    "idCliente": {"type": "integer"},
+                    "nombre": {"type": "string"},
+                    "apellido": {"type": "string"}
+                },
+                "additionalProperties": {"value": "false"},
+                "required": ["idCliente"]
+            }
+        },
+    "additionalProperties": {"value": "false"}, //Lo pongo por seguridad,
+    "required": ["idReserva"] //Pongo la clave en required
+    }
+    ```
+
+- Para **PrecioReserva, *documento auxiliar***:
+
+```JSON
+   "PrecioReserva": {
+        "type": "object",
+        "properties": {
+            "precio": {"type": "number", "minimum": 0},
+            "idReserva": {"type": "integer"}
+        },
+        "additionalProperties": {"value": "false"},
+        "required": ["idReserva"]
+   } 
+```
+
+#### Item *column family*
+
+*"Se pide que realice el diseño (utilizando el diagrama *Chebotko*) para una base de datos *Column-Family* tal que responda la siguiente consulta: 'Los datos de las habitaciones que para una fecha dada comienzan una reserva en esa fecha ordenadas por precio descendente'"*
+
+**MR1:** ¿Qué información nos interesa retornar con la consulta?
+    - nro (Habitación).
+    - precio (Habitación).
+    - categoría (Habitación).
+    - FechaDesde (Reserva), este es opcional.
+    - FechaHasta (Reserva).
+
+**MR2:** ¿Es una consulta por igualdad de atributos? No, entonces agrego dummy como *partition key (K)*.
+
+**MR3:** ¿Es una consulta por desigualdad de atributos? Sí, las que tengan FechaDesde mayores a una fecha dada. $\therefore$ Agrego FechaDesde como *cluster key (C↓)*, con orden descendente.
+
+**MR4:** ¿Importa el orden? Sí, queremos orden descendente por precio, entonces añado orden como *cluster key (C↑)*.
+
+**MR5:** ¿Alcanza con la *partition key (K)* para identificar unívocamente estos datos del item **MR1**? No, entonces agrego nro (me permite identificar unívocamente precio, categoría y a sí mismo), idReserva (me permite identificar unívocamente FechaDesde y FechaHasta) como *cluster key (C)*, con un orden cualquiera.
+
+**¿Alguno de los atributos de MR1 tiene como clave de su entidad a la *partition key (K)*?** No, por lo tanto no hay ninguna *static column (S)*.
+
+Finalmente nos queda la siguiente tabla:
+
+![Ejercicio 2.7.b column family](./images/ej2.7.b.drawio.svg)
+
+#### Item *key-value*
+
+"Diseñe una base clave-valor para poder consultar si *hay alguna habitación de una categoría dada reservada en una fecha*. Es decir se debe saber las habitaciones de una categoría y si esa habitación esta reservada en una fecha dada."
+
+![Ejercicio 2.7.c](./images/ej2.7.c.drawio.svg)
+
+> **Consultar**: Me hace ruido tener un diccionario con fecha y id_reserva como claves y que me retorne un bool. Eso me hace tener que poner agregar $n$ elementos para cada reserva de esa habitación de $n$ días.
+
