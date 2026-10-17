@@ -404,3 +404,221 @@ Finalmente nos queda la siguiente tabla:
 
 > **Consultar**: Me hace ruido tener un diccionario con fecha y id_reserva como claves y que me retorne un bool. Eso me hace tener que poner agregar $n$ elementos para cada reserva de esa habitación de $n$ días.
 
+### Ejercicio 2.8
+
+**DER enunciado**:
+
+[DER del enunciado](./images/ej2.8.der.drawio.svg)
+
+
+#### Item *document based*
+
+<ins>**Consideraciones de diseño:**</ins>
+
+- *"Se quiere particionar las actividades por Fecha para cada usuario, es decir, acceder en una única consulta para un usuario y fecha a todas las actividades correspondientes"*:
+  - Como me dice *en una única consulta para un usuario y fecha*, me sirve una incrustación ya que debería filtrar por fecha o usuario, dependiendo de cuál incruste.
+  - Una referenciación me impide poderlo responder en una sola consulta.
+  - Propongo crear un documento auxiliar que se desprenda de la interrelación `Realiza` y que contenga como claves `idUsuario` y `Fecha` provenientes de las entidades `Usuario` y `Actividad`.
+  - Respecto a los demás atributos:
+    - Podría agregar como atributo unicamente el `ID` de la `Actividad` y para acceder a los datos de la actividad como `Hora` tener que recurrir a la relación `Actividad`.
+    - O bien podría agregar `ID` y `Hora` como atributos del documento auxiliar.
+- *"Para el caso de los artículos se quiere mostrar todas las actividades sobre él cada vez que se accede al mismo independientemente de la fecha"*:
+  - Como se quiere saber todas las actividades sobre el artículo cada vez que se accede al mismo, entonces debo aplicar una *incrustación* de `actividad` en `artículo`.
+  - Si independientemente de la fecha se refiere a que no le interesa la fecha de la actividad, entonces:
+    -  Si tampoco le interesa la hora, solo hago una referenciación de `Actividad` en `Artículo`.
+    -  Si le interesa la hora, hago una incrustación de ella con el `ID` en `Artículo`.
+  - Si se refiere a que quiere tener todas las actividades, sin importar de qué fecha sean (creo que esto es a lo que se refiere), entonces hago una incrustación de `Actividad` en `Artículo`.
+
+![Ejercicio 2.8 DID](./images/ej2.8.did.drawio.svg)
+
+**JSONSchema:**
+
+- Para `Usuario`:
+
+```JSON
+"Usuario":{
+    "type": "object",
+    "properties": {
+        "idUsuario": {
+            "type": "integer",
+        },
+        "email": {
+            "type": "string",
+            "format": "email"
+        },
+        "nombre": {
+            "type": "string"
+        }
+    },
+    "additionalProperties": {"value": False}, 
+    "required": ["idUsuario"]
+}
+```
+
+- Para `Actividad`:
+
+```JSON
+"Actividad":{
+    "type": "object",
+    "properties": {
+        "ID": {
+            "type": "integer",
+        },
+        "fecha": {
+            "type": "string",
+            "format": "date-time"
+        },
+        "hora": {
+            "type": "string",
+            "format": "date-time"
+        }
+    },
+    "additionalProperties": {"value": False}, 
+    "required": ["ID"]
+}
+```
+
+- Para `Blog`:
+
+```JSON
+"Blog":{
+    "type": "object",
+    "properties": {
+        "nombre": {
+            "type": "string",
+        },
+        "categoria": {
+            "type": "string"
+        }
+    },
+    "additionalProperties": {"value": False}, 
+    "required": ["nombre"]
+}
+```
+
+- Para `Artículo`, donde incrustamos `Actividad`:
+
+```JSON
+"Artículo":{
+    "type": "object",
+    "properties": {
+        "titulo": {
+            "type": "string",
+        },
+        "contenido": {
+            "type": "string"
+        },
+        "fecha": {
+            "type": "string",
+            "format": "date-time"
+        },
+        "actividad": {
+            "type": "array",
+            "items": {
+                "type": "object",
+                "properties": {
+                    "ID": {
+                    "type": "integer",
+                },
+                "fecha": {
+                    "type": "string",
+                    "format": "date-time"
+                },
+                "hora": {
+                    "type": "string",
+                    "format": "date-time"
+                }
+            },
+            "additionalProperties": {"value": False}, 
+            "required": ["ID"]
+            }
+        }
+    },
+    "additionalProperties": {"value": False}, 
+    "required": ["nombre"]
+}
+```
+
+> **Duda sobre pasaje de DID a JSONSchema:** ¿Tengo que hacer lo siguiente?: Un JSONSchema para cada entidad, modificarlos si hay incrustaciones o referenciaciones, además realizar uno por cada documento auxiliar.
+
+- Para `Calificar`:
+
+```JSON
+"Calificar":{
+    "type": "object",
+    "properties": {
+        "valor": {"type": "integer", "minimum": 0, "maximum": 10}
+    },
+    "additionalProperties": {"valor": False}
+}
+```
+
+- Para `Comentar`:
+
+```JSON
+"Comentar":{
+    "type": "object",
+    "properties": {
+        "texto": {"type": "string"}
+    },
+    "additionalProperties": {"valor": False}
+}
+```
+
+- Para el documento auxiliar `Actividad_de_usuario_por_fecha`:
+
+```JSON
+"Actividad_de_usuario_por_fecha": {
+    "type": "object",
+    "properties": {
+        "idUsuario": {"type": "integer"},
+        "ID": {"type": "integer"},
+        "Fecha": {"type": "string", "format": "date-time"},
+        "Hora": {"type": "string", "format": "date-time"}
+    },
+    "additionalProperties": {"value": False},
+    "required": ["idUsuario", "ID"]
+}
+```
+
+#### Item *column-family*
+
+*"Se pide diseño para base de datos column-family tal que responda las siguientes consultas"*:
+
+  - *1) "Todos los artículos (título y contenido) de un Blog dado para una Fecha dada".*
+
+  - *2) "Todos los comentarios de un usuario en un rango de fechas".*
+
+*<ins>Seguimos los pasos de Chebotko:</ins>*
+
+<ins>Una tabla por cada consulta.</ins>
+
+**Para consulta 1):**
+
+**MR1:** ¿Qué información me interesa retornar con la respuesta? `Título` y `Contenido`.
+
+**MR2:** ¿Es una búsqueda por igualdad y, en ese caso, sobre qué atributos? Sí, es busqueda por igualdad sobre `Fecha` del artículo y sobre `Nombre` del blog. $\therefore$ Los agrego como *partition key (K)*.
+
+**MR3:** ¿Es una búsqueda por desigualdad, y en dicho caso, sobre qué atributos? No.
+
+**MR4:** ¿Nos piden un orden específico? No.
+
+**MR5:** ¿Nos alcanza con los atributos *partition key (K)* para determinar univocamente todos los demás atributos? No, necesito `Título` para determinar univocamente `Contenido` así que lo agrego como *cluster key (C)* con un orden cualquiera.
+
+![Ejercicio 2.8.b consulta 1](./images/ej2.8.b.consulta1.drawio.svg)
+
+**Para consulta 2):**
+
+**MR1:** ¿Qué información nos piden retornar? `Texto` de comentarios.
+
+**MR2:** ¿Es una búsqueda por igualdad sobre un atributo? Sí, sobre `idUsuario`, entonces lo agrego como *partition key (K)*.
+
+**MR3:** ¿Es una búsqueda por desigualdad sobre un atributo? También, sobre `Fecha` de actividad, entonces la agrego como *cluster key (C)*. No me aclaran un orden entonces elijo descendente *(C↓)*.
+
+**MR4:** ¿Nos piden un orden? No.
+
+**MR5:** ¿Nos alcanza con los atributos que tenemos para tener una clave que identifique univocamente? No, tenemos que agregar `ID` de la actividad para determinar univocamente el `Texto`. Entonces lo agregamos como *cluster key (C)* con un orden cualquiera.
+
+**¿Algún atributo depende de una *partition key (K)*?, de ser así lo marco como *static column (S)***. No.
+
+![Ejercicio 2.8.b consulta 2](./images/ej2.8.b.consulta2.drawio.svg)
