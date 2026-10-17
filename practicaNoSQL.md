@@ -1,5 +1,27 @@
 # Práctica NoSQL
 
+## Conceptuales
+
+- Describa brevemente limitaciones de las base de datos relacionales y con qué características las base de datos *NoSQL* mitigan este problema.
+
+- Describa los cuatro tipos de base de datos *NoSQL*.
+
+- ¿Qué es un espacio de nombres o *bucket* en una base de datos *Key-Value*?.
+
+- ¿De ejemplos de uso de TTL (time to live) en una base *Key-Value*?.
+
+- Compare *Key-Value* con *Document Database*, de ventajas y desventajas de una u otra.
+
+- Discuta ventajas y desventajas de que una *Document Database* sea *schemaless*.
+
+- ¿En qué casos puede ser conveniente desnormalizar?.
+
+- Compare las *Column Family Databases* con otros tipos de bases de datos *NoSQL*.
+
+- ¿A que se denomina *consistencia eventual*?.
+
+- Explique el *teorema CAP*.
+
 ## Modelado
 
 ### Ejercicio 2.1
@@ -753,3 +775,74 @@ Finalmente nos queda la siguiente tabla:
     - El segundo que me retorne una lista de `idCena` con los que pueda acceder a otro diccionario con la información propia de la cena como `Fecha`, `Costo`.
 
 ![Ejercicio 2.9.c key-value](./images/2.9.key-value.drawio.svg)
+
+### Ejercicio 2.10
+
+![Ejercicio 10 DER](./images/2.10.der.drawio.svg)
+
+#### Item a) *document based*
+
+- *"Cuando el usuario entra al sistema debe poder ver rápidamente una lista de los documentos con los que opera (subject, fecha y etiquetas asignadas a ellos por él) ordenados por fecha"*.
+  - Incrusto la etiquetas asignadas a los `Documentos` por el `Usuario`.
+  - Incrusto los `Documentos` en `Usuario` para que pueda acceder rápidamente a ellos.
+- *"Al acceder a un documento es importante contar con todos los adjuntos disponibles"*.
+  - Incrustamos los `Adjuntos` en `Documentos` y eliminamos `Adjuntos`.
+- *"Al visualizar un documento debe poder verse los nombres de los usuarios que operan con él"*.
+  - Incrustamos en `Documentos` los atributos `nombre`, y `apellido` del `Usuario`.
+
+![Ejercicio 10 DID](./images/2.10.did.drawio.svg)
+
+#### Item b) *column family*
+
+- *1) "Todos los documentos de un usuario ordenados ascendentemente por timestamp"*.
+
+<ins> **Diagrama Chebotko:** </ins>
+
+**MR1:** ¿Qué información me interesa retornar con la consulta? La información de los documentos del usuario, por lo tanto `id`, `timestamp`, `subject`, `body`.
+
+> **DUDA:** ¿También la de las entidades débiles asociadas?.
+
+**MR2:** ¿Filtramos por igualdad en algún/os atributo/s? (de ser así ese/esos atributo/s son *partition key (K)*). Sí, por igualdad en el `username`.
+
+**MR3:** ¿Filtramos por desigualdad en algún atributo? (de ser así lo incorporamos como *cluster key (C)* con un orden que nos convenga). No.
+
+**MR4:** ¿Nos piden algún orden? Sí, ascendente por `timestamp`, entonces lo incorporamos como *cluster key (C)* con dicho orden.
+
+**MR5:** ¿Nos alcanza con lo que tenemos para tener una clave de la tabla resultante? (de no ser así, añadimos los atributos necesarios como *cluster key (C)* con cualquier orden). Sí.
+
+**¿Algún/os atributo/s depende totalmente de la *partition key (K)*? (de ser así, los marcamos como *static columns (S)*).
+
+![Ejercicio 10 Chebotko consulta 1](./images/2.10.chebotko1.drawio.svg)
+
+- *1) "Los nombres, apellidos y teléfonos de los usuarios que operan documentos generados en una fecha dada."*
+
+
+**MR1:** ¿Qué información me interesa retornar con la consulta? La información de los documentos del usuario, por lo tanto `nombre`, `apellido` y `telefono`.
+
+**MR2:** ¿Filtramos por igualdad en algún/os atributo/s? (de ser así ese/esos atributo/s son *partition key (K)*). Sí, por igualdad en el atributo `timestamp` del documento.
+
+**MR3:** ¿Filtramos por desigualdad en algún atributo? (de ser así lo incorporamos como *cluster key (C)* con un orden que nos convenga). No.
+
+**MR4:** ¿Nos piden algún orden? (de ser así lo incorporamos como *cluster key (C)* con dicho orden). No.
+
+**MR5:** ¿Nos alcanza con lo que tenemos para tener una clave de la tabla resultante? (de no ser así, añadimos los atributos necesarios como *cluster key (C)* con cualquier orden). No, podemos tener varios documentos con un mismo `timestamp`, por lo que añadimos `id` del documento como *cluster key (C)*. También podemos tener varios usuarios que coincidan en `nombre`, `apellido` y `teléfono`.
+
+**¿Algún/os atributo/s depende totalmente de la *partition key (K)*? (de ser así, los marcamos como *static columns (S)**).
+
+![Ejercicio 2.10 Chebotko consulta 2](./images/2.10.chebotko2.drawio.svg)
+
+#### Item c) *key value*
+
+- *"Realice un diseño Key-Value que permita guardar usuarios y documentos con sus etiquetas. Para los adjuntos sólo se necesita guardar el filename y el type. Considerar el username como inmutable."*
+
+<ins>**Consideraciones del diseño:**</ins>
+
+> **Consultar este último**.
+
+- Dado el `username` y una `password` podemos obtener el `user_id` en el diccionario `login`.
+- Con `user_id` y el `nombre_etiqueta` que introduzca el usuario podemos acceder a los `id` de los documentos bajo esa etiqueta del ese usuario.
+- Con el `id` de los documentos y el `user_id` del usuario podemos obtener los demás datos del documento en el diccionario `documentos_usuario`, como subject, body y timestamp.
+- Con el `id` del documento podemos acceder al diccionario `documentos_adjuntos` para obtener los `filename` de dichos documentos adjuntos, de los cuales solo nos interesa el `type`.
+- Con el `filename` del documento adjunto y el `id` del documento que lo contiene adjunto podemos obtener el `type` del adjunto en el diccionario `tipos_de_adjuntos`.
+
+![Ejercicio 2.10 key value](./images/2.10.key-value.drawio.svg)
