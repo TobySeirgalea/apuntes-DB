@@ -59,6 +59,12 @@
   - **A**: *Availability/Disponibilidad*, que todo request recibido por un nodo fuera de estado de falla debe ser respondido.
   - **P**: *Partition tolerance*, que el *cluster* puede sobrevivir a roturas de comunicación que lo dividan con partes incomunicadas entre sí.
   - La **P** la querés porque los sistemas siempre pueden fallar.
+- Explique el *teorema CAP*:
+  - No se puede tener *C*, *A* y *P* en simultáneo, a lo sumo podés tener 2 <ins>en cualquier sistema de datos compartidos</ins>.
+  - **C**: *Consistencia*, que todos vean los mismos datos al mismo tiempo.
+  - **A**: *Availability/Disponibilidad*, que todo request recibido por un nodo fuera de estado de falla debe ser respondido.
+  - **P**: *Partition tolerance*, que el *cluster* puede sobrevivir a roturas de comunicación que lo dividan con partes incomunicadas entre sí.
+  - La **P** la querés porque los sistemas siempre pueden fallar.
 
 ## Modelado
 
