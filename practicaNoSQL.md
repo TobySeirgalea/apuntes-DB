@@ -270,7 +270,7 @@ En el caso de ser multijugador sería:
 
 > **Corrección del diseño**: (**Validar**) Me dijeron que conviene tener un único camino de entrada a un diccionario, incluso aunque existieran varios, como en este caso que tanto de `'door'` como de `'card_roles'` podés acceder a `'roles'`, conviene solo poner un camino en el diagrama. Esto se debe a que querés evitar inconsistencias, por ejemplo en este caso podrías tener una puerta que tenga roles a los que les permite pasar por ella pero que ella no esté entre las puertas permitidas para ese rol. Respecto a la flecha de `'attempts_data'` hacia `'door'` no es necesaria porque solo te permitiría saber qué roles tenían permitido pasar por esa puerta, pero eso ya lo podés saber con el camino de `'card_status'` → `'card_roles'` → `'roles'`.
 
-> **Duda:** ¿Qué me garantiza que haya consistencia entre la lista de roles permitidos de `'door'` y la de puertas permitidas de `'roles'`? ¿Y que `door_number` del diccionario `attempts_data` sea sobre una puerta de `'door'`?¿Y qué el valor de `allowed` sea coherente con el rol de la tarjeta y la puerta por la que se intentó pasar?
+> **Duda:** ¿Qué me garantiza que haya consistencia entre la lista de roles permitidos de `'door'` y la de puertas permitidas de `'roles'`? ¿Y que `door_number` del diccionario `attempts_data` sea sobre una puerta de `'door'`?¿Y qué el valor de `allowed` sea coherente con el rol de la tarjeta y la puerta por la que se intentó pasar? RTA: Nada te lo garantiza y tampoco te importa porque en NoSQL no tenes consistencia fuerte sino eventual.
 
 <ins>***Idea del diseño:***</ins>
 
@@ -323,8 +323,6 @@ Una variante sería en vez de tener el atributo `permitido` que sería un *bool*
 
 > *¿Está bien lo de replicar los atributos?* Sí, en tu **DID** no vas a tener la relación que surge del M:N. Podés llevarte atributos de las entidades involucradas cuando hacés un documento auxiliar o agregar unos nuevos que consideres necesarios, incluso esos podrían ser claves.
 
->**Consultar:** ¿Qué hacemos en los DID cuando es una relación M:N de la cual queremos guardar su información? ¿Hacemos lo que hice en este ejercicio?
-
 - En el caso en que las tarjetas puedan ir cambiando de rol y que estos no estén fijados para cada tarjeta, entonces me interesaría saber qué rol tuvo una tarjeta en un intervalo de tiempo. Para eso podría añadir otro documento auxiliar que se desprenda de la interrelación `contiene` con atributos <ins>nombre del rol</ins>, <ins>identificador de la tarjeta</ins>, <ins>timestamp retiro de la tarjeta</ins> y <ins>timestamp devolución de la tarjeta</ins>.
 
 > La consigna se refería a que se quiere pasar la misma información que se tenía en la base key value a una de documentos una vez se desactiva la tarjeta, entonces ¿no nos interesaría también saber quién la tenía y con qué rol? en el enunciado no se habla de asociar personas a las tarjetas, como que le da igual ese dato y solo quiere llevar registro de qué tarjeta quiso pasar por tal puerta y si tenía permiso o no. Quizás asociar personar a tarjetas sería una extensión del enunciado posible, habría que añadir una entidad persona, una interrelación con tarjeta que podría ser M:N y de ella sacar un documento auxiliar para guardar esa información.
@@ -347,15 +345,19 @@ Una variante sería en vez de tener el atributo `permitido` que sería un *bool*
         - Como puede que los precios varien mucho y ese documento auxiliar crezca mucho, entonces:
             - No me conviene incrustarlo, además que a cada reserva le importa solo su precio.
             - Si hago que `reserva` referencie al documento auxiliar, entonces voy a tener dos campos con la misma información, ya que el documento auxiliar lo pensé para que utilice `idReserva` como clave.
-            > ¿Puedo agregar en un documento auxiliar un atributo que no esté en ninguna de las entidades con las que se lo relaciona? Sí, incluso puede ser clave. (**Validar**)
+            > ¿Puedo agregar en un documento auxiliar un atributo que no esté en ninguna de las entidades con las que se lo relaciona? Sí, incluso puede ser clave.
             - Entonces propongo que el documento auxiliar sea el que referencie a `reserva`, así incorpora su `idReserva`, que será utilizado como clave en él y evitamos que quede repetido. Para eso cada vez que se quisiera saber con qué precio se hizo una reserva se debe buscar en el documento auxiliar la entrada con el `idReserva`.
     - **A la relación `Se aloja` aplicamos las referencia en ambos lados por ser M:N**.
 
-> En el ejemplo del apunte de mediciones termina eliminando `mediciones` ¿es porque es debil o hay otra razón?
+> En el ejemplo del apunte de mediciones termina eliminando `mediciones` ¿es porque es debil o hay otra razón?. Solo las débiles y generalmente las eliminamos porque si ya la incrustaste no te hace falta.
 
 ![DID Ejercicio 2.7.a](./images/ej2.7.did.drawio.svg)
 
+**corregir: no hace falta el documento auxiliar, incrustando también el precio ya te aseguras para cada reserva tener el precio de esa habitación en ese momento, ya que al crear la reserva te traes su precio en ese momento por la incrustación y si en un futuro lo cambias, ese no va a cambiar en las reservas que ya se hicieron a menos que lo hagas vos manualmente como programador.**
+
 <ins>**JSONSchema** asociado</ins>
+
+**Al hacer los JSONSchema te vas a dar cuenta de si te está faltando información que sí tenías en el DER. Chequear que con los JSONSchemas tenga representada la información de cada cosa del DER, es decir de sus otras interrelaciones también**.
 
 Realizamos uno para cada documento:
 
@@ -470,6 +472,8 @@ Finalmente nos queda la siguiente tabla:
 
 > **Consultar**: Me hace ruido tener un diccionario con fecha y id_reserva como claves y que me retorne un bool. Eso me hace tener que poner agregar $n$ elementos para cada reserva de esa habitación de $n$ días.
 
+**Corregir: Cuando tenés una flecha en un diagrama key value, esa flecha representa que con lo que está en el origen de esa flecha es la clave total y no parcial del otro diccionario. Acá deberías Una vez entras en la reservas, chequear una por una si es de la fecha dada. Que algo sea parte del input de la consulta no significa que deba serlo en tu base key-value.**
+
 ### Ejercicio 2.8
 
 **DER enunciado**:
@@ -478,6 +482,8 @@ Finalmente nos queda la siguiente tabla:
 
 
 #### Item *document based*
+
+**Revisar no perder info del DER: En este caso de los blogs en el artículo**. Rehacer todos los ejercicios chequeando eso. Acá te está faltando info del DER en los JSONs, por ejemplo incrustar las jerarquías, etc.
 
 <ins>**Consideraciones de diseño:**</ins>
 
@@ -604,8 +610,6 @@ Finalmente nos queda la siguiente tabla:
     "required": ["nombre"]
 }
 ```
-
-> **Duda sobre pasaje de DID a JSONSchema:** ¿Tengo que hacer lo siguiente?: Un JSONSchema para cada entidad, modificarlos si hay incrustaciones o referenciaciones, además realizar uno por cada documento auxiliar.
 
 - Para `Calificar`:
 
