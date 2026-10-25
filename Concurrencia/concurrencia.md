@@ -18,23 +18,18 @@ $H_1 \equiv H_S = r_1(A);w_1(A);r_1(B);w_1(B);r_2(A);w_2(A);r_2(B);w_2(B)$
 >**Lectura entre transacciones**
 >Dadas dos transacciones $T_i$ y $T_j$ decimos que $T_i$ lee $X$ de $T_j$ si $T_i$ lee $X$ y $T_j$ fue la última transacción que escribió $X$ y no abortó antes de que $T_i$ lo leyera. i.e.
 >
->$$
->\begin{cases}
-    w_j(X) < r_i(X) \iff T_j ~escribió~antes~el~elemento~que~lee~T_i \\
-    a_j \nless r_i(X) \iff T_j~no~abortó \\
-    (Si~existe~ w_k(X) / w_j(X) \lt w_k(X) \lt r_i(X) \implies a_k \lt r_i(X)) \iff T_j ~es~la~última ~que~escribió~ X ~y~no~abortó
->\end{cases}
->$$
+>$$\begin{cases} w_j(X) < r_i(X) \iff T_j ~escribió~antes~el~elemento~que~lee~T_i \\a_j \nless r_i(X) \iff T_j~no~abortó \\(Si~existe~ w_k(X) / w_j(X) \lt w_k(X) \lt r_i(X) \implies a_k \lt r_i(X)) \iff T_j ~es~la~última ~que~escribió~ X ~y~no~abortó \end{cases}$$
 
 >[!IMPORTANT]
 >**Definiciones:**
+>
 > - *Historia recuperable* (**RC**): Si toda transacción $T_i$ que leyó de $T_j$ y commiteó, entonces $T_j$ commiteó antes. Es decir **solo commitea después de que todas de las que leyó lo hicieron**.
 > - *Historia avoid cascading abort* (**ACA**): Siempre que una transacción $T_i$ lee de $T_j$, $T_j$ commiteó antes de la lectura. Es decir **solo leo de las que ya commitearon**.
 > - *Historia strict* (**ST**): Una transacción **solo puede leer o escribir un item si la última que lo escribió ya commiteó o abortó**.
 
 >[!IMPORTANT]
 > **Teorema de la recuperabilidad:**
-> $ ST \subset ACA \subset RC$
+> ST $\subset$ ACA $\subset$ RC
 
 >[!IMPORTANT]
 >**Serializabilidad (*SR*)**
@@ -101,4 +96,3 @@ $H_5=r_1(X);r_4(Y);r_3(X);w_1(X);w_4(Y);w_3(X);c_1;w_3(Y); w_4(Z);c_3;w_4(X);c_4
   - $\therefore$ No es **ST**.
 
 ### (b) Indicar cuáles podrían producir un *dirty read* o un *lost update*
-
