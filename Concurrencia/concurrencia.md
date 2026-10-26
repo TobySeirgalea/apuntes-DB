@@ -434,7 +434,30 @@ $H_S=T_4;T_1;T_2;T_3$ sería otro.
 
 > Dadas las transacciones del [ejercicio 2.1](#ejercicio-21) llevarlas a un modelo de *locking binario* tal que ambas sean 2PL.
 >
-> $T_1 = r_1(A);w_1(A);r_1(A);w_1(B) \\ T_2 = r_2(A);w_2(A);r_2(B);w_2(B)$
+> $T_1 = r_1(A);w_1(A);r_1(B);w_1(B) \\ T_2 = r_2(A);w_2(A);r_2(B);w_2(B)$
 
+- Para que ambas sean **2PL** deben cumplir que adquieran todos sus locks antes del primer unlock.
+- Versión 2PL de $T_1=l_1(A);r_1(A);w_1(A);l_1(B);r_1(B);w_1(B);ul_1(A);ul_1(B)$.
+- Versión 2PL de $T_2=l_2(A);r_2(A);w_2(A);l_2(B);r_2(B);w_2(B);ul_2(A);ul_2(B)$.
+- Ahora dado que ambas son **2PL**, toda historia legal sobre ellas es **SR**, por lo tanto serializable.
+
+## Ejercicio 2.5
+
+> Dadas las siguientes transacciones:
+>
+> $T_1=l_1(A);l_1(B);u_1(A);u_1(B); \\ T_2=l_2(B);l_2(A);u_2(B);u_2(A);$
+
+### (a) Responder: ¿Cumplen las transacciones $T_1$ y $T_2$ con 2PL?
+
+Sí, las transacciones $T_1$ y $T_2$ cumplen con 2PL porque adquieren todos sus locks antes de liberar el primer lock.
+
+### (b) Realizar un entrelazado tal que se produzca un *deadlock*
+
+- $l_1(A);l_2(B);$ ya te genera un *deadlock* porque $T_1$ tiene el lock sobre $A$ pero no puede continuar sin adquirir el lock sobre $B$ y al mismo tiempo $T_2$, que tiene el lock sobre $B$, no puede continuar sin adquirir el de $A$. Así que ninguno llega avanzar.
+- Completamos el *schedule* para formar una historia, de las varias posibles.
+
+$H=l_1(A);l_2(B);l_1(B);l_2(A);u_1(A);u_1(B);u_2(B);u_2(A)$
+
+>[!NOTE] Notar que dadas transacciones 2PL, podemos tener una historia que no lo sea.
 
 [1] [A Critique of ANSI SQL Isolation Levels](https://arxiv.org/pdf/cs/0701157)
