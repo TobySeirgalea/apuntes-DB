@@ -68,6 +68,148 @@ Patrón: $r_1(x);\dots;w_2(x);\dots;w_1(x);\dots;c_1$ (Lost Update) [1]
 
 Distintas lecturas de un item en una transacción dan resultados distintos porque entre lecturas fue modificado por otra transacción.
 
+### Control de concurrencia
+
+### Esquema lock binario
+
+- $l_i(A)$: Transacción $i$ realiza *lock* sobre item $A$.
+- $u_i(A)$: Transacción $i$ libera *lock* sobre item $A$.
+
+#### Historias legales
+
+- $T_i$ solo puede leer o escribir item $A$ si antes realizó *lock* sobre $A$ y aún no lo liberó.
+- Si $T_i$ realiza *lock* sobre un elemento debe liberarlo posteriormente.
+- Si $T_i$ desea obtener *lock* sobre elemento lockeado por otra $T_j$, debe esperar a que esta lo libere.
+
+#### Grafo precedencia lock binario
+
+- Un nodo por cada $T_i$ de $H$ historia legal.
+- $T_i \xrightarrow{A} T_j$ si $T_i$ realiza $l_i(A)$ y luego $T_j$ realiza $l_j(A)$.
+
+$H$ es **SR** $\iff$ grafo de precedencia no tiene ciclos.
+
+Órdenes topológicos del grafo de precedencia dan orden de *historia serial equivalente*
+
+>[!NOTE] ¿Cómo obtener ordenes topológicos?: Buscás el nodo sin aristas de entrada, lo sacás con todas sus aristas salientes y lo ponés en una lista. Repetís el proceso hasta que no te queden nodos y lo tenés.
+
+>[!IMPORTANT] **CONSULTAR**: Si hay ciclo no es serializable?
+
+### Esquema lock ternario
+
+Como las <ins>lecturas de un mismo item por parte de múltiples transacciones no generan conflictos</ins>, incorporamos mecanismo para permitirlas.
+
+- $rl_i(A)$: Lock de lectura compartido.
+- $wl_i(A)$: Lock de escritura exclusivo.
+
+| $T_i$ solicita | $T_j$ tiene (rl) | $T_j$ tiene (wl) |
+| :------------: | :--------------: | :--------------: |
+| **rl**         | ✅ Se lo damos   | ❌ Denegado      |
+| **wl**         | ❌ Denegado      | ❌ Denegado      |
+
+*Solo permitimos varios locks de lectura $rl$ en simultáneo*.
+
+#### Historias legales
+
+**Requisitos de consistencia**:
+
+- Todo $r_i(X)$ debe ser precedido por $rl_i(X)$ sin $u_i(X)$ intermedio. *No podés leer sin el lock de lectura sobre ese item*.
+- Todo $w_i(X)$ debe ser precedido por $wl_i(X)$ sin $u_i(X)$ intermedio. *No podés escribir sin el lock de escritura sobre ese item*.
+- Todos los locks deben ser seguidos por un unlock del mismo elemento. *En algún momento lo tenés que liberar*.
+
+**Requisitos de legalidad**:
+
+- Si $wl_i(X)$ aparece en una historia, entonces no puede haber luego un $wl_j(X)$ o $rl_j(X)$ para $j \neq i$ sin que haya primero un $u_i(X)$. *Si solicitaste lock de escritura sobre un item nadie lo puede leer ni escribir hasta que lo liberes*.
+- Si $rl_i(X)$ aparece en una historia, entonces no puede haber luego un $wl_ij(X)$ para $j \neq i$ sin que haya primero un $u_i(X)$. *Si alguien tiene el lock de lectura sobre un item, no podés recibir el de escritura sobre el mismo hasta que esa lo libere*.
+
+#### Grafo precedencia
+
+- Nodo por cada $T_i$.
+- Si $T_i$ hace un $rl_i(X)$ o $wl_i(X)$ y luego $T_j$, con $i \neq j$ hace un $wl_j(X)$ en $H$, ponés $T_i \xrightarrow T_j$. *Si pediste lock (lectura o escritura) sobre item y otra lo escribe después, entonces ponés arista*.
+- Si $T_i$ hace un $wl_i(X)$ y luego $T_j$, con $i \neq j$ hace un $rl_j(X)$ en $H$, ponés $T_i \xrightarrow T_j$. *Si escribiste un item y otra lo quiere leer, ponés arista*.
+
+>[!IMPORTANT] **CONSULTAR**: Si hay ciclo no es serializable?
+
+#### *Lock upgrading/downgrading*
+
+- **Upgrading lock**: Pasar de lock de lectura compartido a uno exclusivo de escritura.
+- **Downgrading lock**: Pasar de lock de escritura exclusivo a uno de lectura compartido.
+
+**Problema**: Solo concedemos la actualización si es la única transacción con ese lock sobre el item. En el caso *downgrading* sabemos que es el único que lo posee por ser exclusivo, pero en *upgrading* no, ya que varios pueden tener compartido el de lectura y ninguna puede hacer el *upgrading* hasta que las demás lo liberen.
+
+#### *Update locking*
+
+Para solucionar el problema del *deadlock por upgrading* agregamos el ***update lock***, $ul_i(X)$ que da privilegio de lectura pero no de escritura, con la ventaja de ser el único que puede solicitar *upgrading* a *write lock*.
+
+| $T_i$ solicita | $T_j$ tiene (rl) | $T_j$ tiene (wl) | $T_j$ tiene (ul) |
+| :------------: | :--------------: | :--------------: | :--------------: |
+| **rl**         | ✅ Se lo damos   | ❌ Denegado      | ❌ Denegado      |
+| **wl**         | ❌ Denegado      | ❌ Denegado      | ❌ Denegado      |
+| **ul**         | ✅ Se lo damos   | ❌ Denegado      | ❌ Denegado      |
+
+*Solo le concedemos el $ul(X)$ si nadie lo tiene y nadie tiene $wl(X)$*.
+
+>[!IMPORTANT] *Locking* por si solo no garantiza <ins>serializabilidad</ins>, se necesitan protocolos para posicionar lock y unlocks.
+
+### Protocolos de *locking*
+
+#### 2PL (*two phase locking*)
+
+Transacción es 2PL $\iff$ todos los *locks* preceden a la primer operación de *unlock*.
+
+El dos fases viene de: fase de adquisición de locks (*growing phase*) y fase de liberación (*shrinking phase*).
+
+**Teorema serializabilidad con 2PL**
+Si todas las transacciones son 2PL, entonces toda historia legal sobre ellas es **SR**, incluso Gen(2PL) $\subset$ OCSR.
+
+#### C2PL (*conservative two phase locking*)
+
+Transacción es C2PL $\iff$ adquiere todos los locks que necesitará al inicio, es decir antes de su primer escritura o lectura.
+
+#### 2PLE o S2PL (*strict two phase locking*)
+
+Transacción es 2PLE $\iff$ es 2PL y no libera ninguno de sus locks de escritura hasta después de realizar commit o abort.
+
+2PLE garantiza que historia es **ST**.
+
+#### 2PLR o SS2PL (*rigurous two phase locking*)
+
+Transacción es 2PLR $\iff$ es 2PL y no libera ninguno de sus locks de escritura o lectura hasta después del commit o abort.
+
+### Deadlocks
+
+*Estado en el cual cada miembro de un grupo de transacciones está esperando que algún otro miembro libere un lock*.
+
+#### Detección de *deadlocks*: Wait-for graph
+
+- Un nodo por cada transacción que tiene un *lock* o espera por uno.
+- Una arista entre $T_i$ y $T_j$ si $T_i$ está esperando que $T_j$ libere un lock sobre un item que $T_i$ necesita bloquear. *Arrancás desde final de $H$ y ponés arista si hay un lock previo sobre mismo item*.
+
+Ciclos $\iff$ hay deadlock.
+
+#### Prevención de *deadlocks*
+
+##### Timestamping
+
+Cada transacción $T_i$ tiene un timestamp $TS(T_i)$ es un identificador único basado en orden en el que cada transacción comienza.
+
+**Estrategias**:
+Si $T_i$ quiere realizar un lock sobre un item y no puede porque $T_j$ ya tiene un lock previo sobre él, entonces:
+
+- ***Wait-die***:
+  - Si $T_i$ es más viejo que $T_j \xrightarrow T_i$ espera.
+  - Si $T_i$ es más joven que $T_j \xrightarrow T_i$ aborta y reinicia más tarde con mismo timestamp.
+- ***Wound-wait***:
+  - Si $T_i$ es más viejo que $T_j \xrightarrow T_j$ aborta y reinicia más tarde con el mismo timestamp.
+  - Si $T_i$ más joven que $T_j \xrightarrow T_i$ espera.
+
+>[!NOTE] $TS(T_i) \lt TS(T_j) \iff$ $T_i$ es más viejo que $T_j$.
+
+##### Otros esquemas
+
+- Timeout.
+- No waiting (NW).
+- Cautious waiting (CW).
+
 ## Ejercicio 1.2
 
 > Dadas las siguientes historias (schedules):
@@ -213,5 +355,35 @@ $H=r_2(D);r_2(B);w_1(B);w_2(C);c_2;r_1(C);w_1(C);c_1$
 ### Dar una historia $H_3$ que sea **ST**
 
 - $H=T_1;c_1:T_2;c_2$ cumple por ser serial.
+
+## Ejercicio 2.1
+
+> Dada las siguientes transacciones escritas como Read/Write:
+>
+> $T_1 = r_1(A);w_1(A);r_1(A);w_1(B) \\ T_2 = r_2(A);w_2(A);r_2(B);w_2(B)$
+>
+> **Nota:**  Si bien ambas parecen iguales en realidad pueden realizar operaciones diferentes sobre los ítems leídos.
+
+### (a) Incorporar locks para que llevarlas a un modelo con locking binario
+
+- Encerramos cada lectura $r_i(X)$ con $l_i(X);r_i(X);ul_i(X)$.
+- Encerramos cada escritura $w_i(X)$ con $l_i(X);w_i(X);ul_i(X)$.
+
+$T_1 = l_1(A);r_1(A);ul_1(A);l_1(A);w_1(A);ul_1(A);l_1(A);r_1(A);ul_1(A);l_1(B);w_1(B);ul_1(B). \\ T_2 = l_2(A);r_2(A);ul_2(A);l_2(A);w_2(A);ul_2(A);l_2(B);r_2(B);ul_2(B);l_2(B);w_2(B);ul_2(B)$.
+
+### (b) Realizar una historia legal pero no serializable
+
+- Para que sea no serializable quiero que su grafo de precedencia tenga un ciclo.
+- En su grafo de precedencia tenemos arista de $T_i$ a $T_j$ si $T_i$ realiza $l_i(A)$ y luego $T_j$ realiza $l_j(A)$.
+- Para la arista de $T_1 \xrightarrow{A} T_2$ ubico primero $r_1(A);w_1(A)$ y luego $r_2(A);w_2(A)$.
+- Para la arista  $T_2 \xrightarrow{B} T_1$ ubico primero $r_2(B);w_2(B)$ y luego $r_1(B);w_1(B)$.
+
+$H=l_1(A);r_1(A);w_1(A);ul_1(A);l_2(A);r_2(A);w_2(A);ul_2(A);l_2(B);r_2(B);w_2(B);ul_2(B);l_1(B);r_1(B);w_1(B);ul_1(B)$
+
+![Ciclo en el grafo de precedencia](./images/ej2.1.drawio.svg)
+
+$H$ es una historia legal, pero no serializable.
+
+## Ejercicio 2.2
 
 [1] [A Critique of ANSI SQL Isolation Levels](https://arxiv.org/pdf/cs/0701157)
