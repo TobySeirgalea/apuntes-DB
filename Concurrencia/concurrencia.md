@@ -460,4 +460,52 @@ $H=l_1(A);l_2(B);l_1(B);l_2(A);u_1(A);u_1(B);u_2(B);u_2(A)$
 
 >[!NOTE] Notar que dadas transacciones 2PL, podemos tener una historia que no lo sea.
 
+## Ejercicio 3.1
+
+> Dadas las siguientes transacciones $T_1$ y $T_2: \\$
+> $T_1=wl_1(A);A = A + 1;wl_1(B);B = A + B;u_1(A);u_1(B) \\ T_2=rl_2(A);wl_2(C);C = A + 1;wl_2(D);D = 1;u_2(A);u_2(D);u_2(C)$.
+
+### (a) Construir un *schedule* legal serializable que no sea serial
+
+- Estamos en *locking ternario*.
+- Para construir un *schedule* legal serializable que no sea serial debemos encontrar un intercalamiento de $T_1$ y $T_2$ tal que su *grafo de precedencia* sea *acíclico*.
+- En el *grafo de precedencia* del modelo *locking ternario* tenemos:
+  - Un nodo por cada transacción.
+  - Una arista de $T_i \xrightarrow{X} T_j$ piden lock sobre mismo item y al menos una de ellas es un *write lock*.
+  - $T_1$ pide lock sobre $A$ y $B$.
+  - $T_2$ pide lock sobre $A, C$ y $D$.
+  - El único item que me genera una arista entre las transacciones es $A$. Pero como me genera una sola arista, ningún intercalamiento que sea un *schedule* legal me generará un ciclo, por lo que son serializables.
+  - Propongo $H=wl_1(A);A = A + 1;wl_1(B);B = A + B;u_1(A);rl_2(A);wl_2(C);C = A + 1;wl_2(D);D = 1;u_2(A);u_2(D);u_2(C);u_1(B)$, que sería ejecutar $T_1$ hasta que libera el lock sobre $A$, luego ejecutar $T_2$ y finalmente liberar el lock de $T_1$ sobre $B$.
+
+### (b) Responder: ¿Cumplen las transacciones $T_1$ y $T_2$ con 2PL?
+
+- $T_1$ sí cumple con 2PL, pues adquiere todos sus locks antes de liberar el primero.
+- $T_2$ también.
+
+## Ejercicio 3.2
+
+> Dadas las transacciones $T_1$ , $T_2$ , $T_3$ y $T_4$ con el siguiente entrelazado:
+> ![Tabla enunciado ejercicio 3.2](./images/tabla_enunciado_ej3.2.png)
+
+### (a) Determinar si es serializable y, en caso afirmativo, proponer las correspondientes historias seriales equivalentes
+
+- De nuevo, estamos en esquema *locking ternario*.
+- Construimos el grafo de precedencia y vemos si es acícliclo, en dicho caso es una historia serializable (**SR**).
+  - Ponemos un nodo por cada transacción.
+  - Una arista de $T_i \xrightarrow{X} T_j$ si ambas lockean el mismo recurso y al menos una de ellas es un *write lock*, vemos la historia en orden ascendente temporalmente.
+
+![Tabla para saber de donde salen las aristas](./images/ej3.2_tabla.drawio.svg)
+
+![Grafo de precedencia](./images/ej3.2.grafo.drawio.svg)
+
+Es acíclico, por lo tanto la historia es serializable. Obtengo una historia serial equivalente a partir de un orden topológico del grafo:
+
+- $T_2$ es el único sin aristas de entrada, lo saco y lo pongo primero en el orden.
+- Al eliminar $T_2$ el único que queda sin aristas de entrada es $T_3$. Lo saco y añado al orden.
+- Al eliminar $T_3$ el único que queda sin aristas de entrada es $T_1$, lo saco y añado al orden.
+- Saco y añado al orden a $T_4$.
+
+Orden topológico: $T_2, T_3, T_1, T_4 \therefore H \equiv H_s = T_2;T_3;T_1;T_4$.
+
+
 [1] [A Critique of ANSI SQL Isolation Levels](https://arxiv.org/pdf/cs/0701157)
