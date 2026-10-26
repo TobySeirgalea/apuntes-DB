@@ -171,6 +171,8 @@ Transacción es 2PLE $\iff$ es 2PL y no libera ninguno de sus locks de escritura
 
 2PLE garantiza que historia es **ST**.
 
+>[!IMPORTANT] Necesariamente debe liberarlos después que los de lectura?
+
 #### 2PLR o SS2PL (*rigurous two phase locking*)
 
 Transacción es 2PLR $\iff$ es 2PL y no libera ninguno de sus locks de escritura o lectura hasta después del commit o abort.
@@ -507,5 +509,89 @@ Es acíclico, por lo tanto la historia es serializable. Obtengo una historia ser
 
 Orden topológico: $T_2, T_3, T_1, T_4 \therefore H \equiv H_s = T_2;T_3;T_1;T_4$.
 
+## Ejercicio 3.3
+
+> Dadas las transacciones $T_1$, $T_2$, $T_3$, $T_4$ y $T_5$ con el siguiente entrelazado:
+>
+> $H_1 : rl_1(A);rl_2(A);rl_3(A);u_1(A);rl_5(B);u_5(B);wl_1(B);wl_2(C);u_1(B);rl_3(B);u_3(A);u_2(A);wl_4(A);u_4(A);rl_1(D);u_1(D);wl_4(D);u_4(D);wl_5(A);u_5(A);u_2(C);u_3(B)$
+
+### (a) Dibujar el entrelazado en forma tabular
+
+![Tabla y grafo](./images/ej3.3_tabla_y_grafo.drawio.svg)
+
+### (b) Determinar si es serializable y, en caso afirmativo, proponer las correspondientes historias seriales equivalentes
+
+No es serializable, pues en el *grafo de precedencia* contiene un ciclo. $rl_1(A);\dots;wl_5(A)$ genera una arista de $T_1$ a $T_5$, y $rl_5(B);\dots;wl_1(B)$ genera una de $T_5$ a $T_1$.
+
+### (c) Para cada transacción indicar si cumple con ser 2PL. Si no lo son modificarlas para que lo sean
+
+Una transacción es 2PL $\iff$ solicita todos sus *locks* antes de liberar el primero.
+
+- $T_1$ ❌, Versión 2PL: $T_1=rl_1(A);wl_1(B);rl_1(D);u_1(A);u_1(B);u_1(D)$.
+- $T_2$ ✅.
+- $T_3$ ✅.
+- $T_4$ ❌, Versión 2PL: $T_4=wl_2(A);wl_4(D);u_4(A);u_4(D)$.
+- $T_5$ ❌, Versión 2PL: $T_5=rl_5(B);wl_5(A);u_5(B);u_5(A)$.
+
+>[!IMPORTANT] ¿Ni siquiera es legal no? porque $T_2$ y $T_1$ mantienen su $rl(A)$ al momento de que $T_4$ escribe.
+
+### (d) Sobre el ítem anterior ubicar commits para que sean 2PL estricto y 2PL riguroso
+
+Una transacción es *2PL estricta* (**2PLE**) $\iff$ es <ins>**2PL**</ins> y <ins>no libera</ins> ninguno de sus <ins>*locks de escritura* hasta</ins> realizar <ins>*commit* o *abort*</ins>.
+
+- Versiones **2PLE**:
+  - $T_1=rl_1(A);wl_1(B);rl_1(D);u_1(A);u_1(D);c_1;u_1(B);$.
+  - $T_2=rl_2(A);wl_2(C);u_2(A);c_2;u_2(C)$.
+  - $T_3=rl_3(A);rl_3(B);u_3(A);u_3(B);c_3$.
+  - $T_4=wl_2(A);wl_4(D);c_4;u_4(A);u_4(D)$.
+  - $T_5=rl_5(B);wl_5(A);u_5(B);c_5;u_5(A)$.
+
+Una transacción es *2PL riguroso* (**2PLR**) $\iff$ es <ins>**2PL**</ins> y **no libera sus commits de escritura ni lectura** hasta después de que *aborta* o *commitea*.
+
+- Versiones **2PLR**:
+  - $T_1=rl_1(A);wl_1(B);rl_1(D);c_1;u_1(A);u_1(B);u_1(D)$.
+  - $T_2=rl_2(A);wl_2(C);c_2;u_2(A);u_2(C)$.
+  - $T_3=rl_3(A);rl_3(B);c_3;u_3(B);u_3(A)$.
+  - $T_4=wl_2(A);wl_4(D);c_4;u_4(A);u_4(D)$.
+  - $T_5=rl_5(B);wl_5(A);c_5;u_5(B);u_5(A)$.
+
+## Ejercicio 3.4
+
+> Dadas las transacciones: $\\ T_1:rl_1(A);wl_1(B);u_1(A);u_1(B) \\ T_2:rl_2(A);u_2(A);rl_2(B);u_2(B) \\ T_3:wl_3(A);u_3(A);wl_3(B);u_3(B) \\ T_4:rl_4(B);u_4(B);wl_4(A);u_4(A)$.
+
+### (a) Armar una historia legal y serializable y dar la correspondiente planificación serial
+
+- Para que pueda ser serializable no debe tener ciclos en su *grafo de precedencia*.
+- En ese grafo tenemos arista $T_i \xrightarrow{X} T_j \iff$ $T_i$ y $T_j$ tienen locks sobre mismo elemento y al menos uno es de escritura.
+- Posibles aristas, sobre ellas luego elegimos sentidos para que no haya ciclo en el digrafo:
+  - $T_2 \leftrightarrow{A, B} T_3$ y $T_2 \leftrightarrow{A} T_4$, $T_1 \leftrightarrow{A, B} T_3$.
+  - $T_1 \leftrightarrow^{B} T_2$, $T_1 \leftrightarrow{B} T_3$, $T_1 \leftrightarrow{B, A} T_4$.
+  - $T_3 \leftrightarrow{A, B} T_4$
+
+![Posibles aristas y orden elegido](./images/ej3.4a.drawio.svg)
+
+$H=rl_1(A);wl_1(B);rl_2(A);u_2(A);rl_2(B);u_1(A);wl_3(A);u_3(A);u_1(B);(Terminó~T_1);u_2(B);(Terminó~T_2);wl_3(B);u_3(B);(Terminó~T_3);rl_4(B);u_4(B);wl_4(A);u_4(A);(Terminó~T_4)$
+
+La planificación serial sale del orden topológico del grafo y eso $T_1;T_2;T_3;T_4$.
+
+## (b) Dibujar el Grafo de Precedencia de la siguiente historia H1 (SG(H1)) y determinar si es serializable
+
+> $H_1:wl_3(A);rl_4(B);u_3(A);rl_1(A);u_4(B);wl_3(B);rl_2(A);u_3(B); wl_1(B);u2(A);u_1(A);wl_4(A);u_1(B);rl_2(B);u_4(A);u_2(B)$
+
+![Grafo de precedencia](./images/ej3.4b.drawio.svg)
+
+Tiene ciclos $\therefore$ no es serializable.
+
+>![IMPORTANT] ¿Que es SG(H_1)?
+
+## (c) Reescribir las transacciones para que se adhieran al protocolo 2PL
+
+Una transacción es **2PL** $\iff$ adquiere todos sus locks antes de liberar el primero.
+
+- Versiones **2PL**:
+  - $T_1$ ya es **2PL**.
+  - $T_2=rl_2(A);rl_2(B);u_2(B);u_2(A)$.
+  - $T_3=wl_3(A);wl_3(B);u_3(A);u_3(B)$.
+  - $T_4=rl_4(B);wl_4(A);u_4(A);u_4(B)$.
 
 [1] [A Critique of ANSI SQL Isolation Levels](https://arxiv.org/pdf/cs/0701157)
