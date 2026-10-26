@@ -386,4 +386,55 @@ $H$ es una historia legal, pero no serializable.
 
 ## Ejercicio 2.2
 
+> Dadas las siguientes transacciones que deben ser ejecutadas en forma concurrente, indicar una historia legal en el cual se produzca un dirty read:
+>
+> $T_1 = l_1(A);A = A + 2;l_1(B);B = A + 5;u_1(B);u_1(A);l_1(C);C = 2 ∗ C;u_1(C) \\ T_2 = l_2(A);A = A + 1;l_2(E);E = A + 8;l_2(D);u_2(E);D = D/5; u_2(A);u_2(D)$
+
+- **Dirty read** es si lees de una transacción que aún no commiteó.
+- La unica variable que escriben ambos es $A$ y ambas inician con esa escritura, por lo que $T_1$ y $T_2$ nos quedan divididas por ella.
+
+$T_1' =l_1(A);A = A + 2;l_1(B);B = A + 5;u_1(B);u_1(A);$
+$T_1''=l_1(C);C = 2 ∗ C;u_1(C)$
+$T_2' =l_2(A);A = A + 1;l_2(E);E = A + 8;l_2(D);u_2(E);D = D/5; u_2(A)$
+$T_2''=u_2(D)$
+
+Cualquier ejecución de $T_1';T_2'$ o $T_2';T_1'$ va a hacer que una utilice el valor modificado por la otra en lugar del original de $A$ que hubiera utilizado si no se ejecutaran concurrentemente.
+
+Las siguientes serían algunas de la posibles:
+
+$H=T_1';T_2';T_1'';T_2''$
+$H=T_1';T_2';T_2'';T_1''$
+$H=T_2';T_1';T_2'';T_1''$
+$H=T_2';T_1';T_1'';T_2''$
+
+## Ejercicio 2.3
+
+> Considerando la siguiente historia con el modelo introductorio de LOCK/UNLOCK
+>
+> ![Historia enunciado 2.3](./images/tabla_enunciado_ej2.3.png)
+
+### (a) Determinar si es serializable
+
+- Para chequear si es serializable armamos el grafo de precedencia acorde al modelo, en este caso es el de *lock binario* y vemos si tiene ciclos, en dicho caso será no serializable, caso contrario será serializable.
+- Un nodo por cada transacción.
+- Una arista $T_i \xrightarrow{X} T_j$ si $T_j$ tiene un lock sobre $X$ luego del de $T_i$.
+
+![Grafo de precedencia](./images/ej2.3_grafo_precedencia.drawio.svg)
+
+Es acíclico $\therefore$ es serializable.
+
+### (b) En caso afirmativo, proponer un *schedule* serial equivalente
+
+Para obtener un *schedule* serial equivalente computo su orden topológico.
+
+$H_S=T_1;T_4;T_2;T_3$ sería uno de los posibles.
+$H_S=T_4;T_1;T_2;T_3$ sería otro.
+
+## Ejercicio 2.4
+
+> Dadas las transacciones del [ejercicio 2.1](#ejercicio-21) llevarlas a un modelo de *locking binario* tal que ambas sean 2PL.
+>
+> $T_1 = r_1(A);w_1(A);r_1(A);w_1(B) \\ T_2 = r_2(A);w_2(A);r_2(B);w_2(B)$
+
+
 [1] [A Critique of ANSI SQL Isolation Levels](https://arxiv.org/pdf/cs/0701157)
