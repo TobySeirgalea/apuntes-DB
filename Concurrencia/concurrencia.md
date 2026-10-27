@@ -119,6 +119,7 @@ Como las <ins>lecturas de un mismo item por parte de múltiples transacciones no
 **Requisitos de legalidad**:
 
 - Si $wl_i(X)$ aparece en una historia, entonces no puede haber luego un $wl_j(X)$ o $rl_j(X)$ para $j \neq i$ sin que haya primero un $u_i(X)$. *Si solicitaste lock de escritura sobre un item nadie lo puede leer ni escribir hasta que lo liberes*.
+
 - Si $rl_i(X)$ aparece en una historia, entonces no puede haber luego un $wl_ij(X)$ para $j \neq i$ sin que haya primero un $u_i(X)$. *Si alguien tiene el lock de lectura sobre un item, no podés recibir el de escritura sobre el mismo hasta que esa lo libere*.
 
 #### Grafo precedencia
@@ -574,7 +575,7 @@ $H=rl_1(A);wl_1(B);rl_2(A);u_2(A);rl_2(B);u_1(A);wl_3(A);u_3(A);u_1(B);(Terminó
 
 La planificación serial sale del orden topológico del grafo y eso $T_1;T_2;T_3;T_4$.
 
-## (b) Dibujar el Grafo de Precedencia de la siguiente historia H1 (SG(H1)) y determinar si es serializable
+### (b) Dibujar el Grafo de Precedencia de la siguiente historia H1 (SG(H1)) y determinar si es serializable
 
 > $H_1:wl_3(A);rl_4(B);u_3(A);rl_1(A);u_4(B);wl_3(B);rl_2(A);u_3(B); wl_1(B);u2(A);u_1(A);wl_4(A);u_1(B);rl_2(B);u_4(A);u_2(B)$
 
@@ -584,7 +585,7 @@ Tiene ciclos $\therefore$ no es serializable.
 
 >![IMPORTANT] ¿Que es SG(H_1)?
 
-## (c) Reescribir las transacciones para que se adhieran al protocolo 2PL
+### (c) Reescribir las transacciones para que se adhieran al protocolo 2PL
 
 Una transacción es **2PL** $\iff$ adquiere todos sus locks antes de liberar el primero.
 
@@ -593,5 +594,74 @@ Una transacción es **2PL** $\iff$ adquiere todos sus locks antes de liberar el 
   - $T_2=rl_2(A);rl_2(B);u_2(B);u_2(A)$.
   - $T_3=wl_3(A);wl_3(B);u_3(A);u_3(B)$.
   - $T_4=rl_4(B);wl_4(A);u_4(A);u_4(B)$.
+
+## Ejercicio 3.5
+
+> Dadas las transacciones $T_1$, $T_2$, $T_3$ con el siguiente entrelazado $H_1$:
+>
+> $H_1:wl_3(B);rl_3(B);rl_1(A);rl_3(C);u_3(B);rl_1(B);u_1(B);wl_2(B); u_3(C);rl_2(C);u_1(A);wl_2(A);u_2(B);u_2(A);rl_1(C);rl_3(D);u_3(D);u_1(C);wl_2(C);u_2(C)$
+
+### (a) Indicar a qué historia serial es equivalente $H_1$. Justificar la respuesta
+
+- Armamos su grafo de precedencia:
+
+![Grafo de precedencia](./images/ej3.5.drawio.svg)
+
+Como el grafo es acíclico $\iff$ es serializable.
+
+- Obtenemos la *historia serial equivalente* mediante el orden topológico del grafo.
+  - Sacamos $T_3$ que tiene grado de entrada cero.
+  - Sacamos $T_1$ que queda con grado de entrada cero.
+  - Sacamos $T_2$ que queda solo.
+  - El orden topológico obtenido es $T_3,T_1,T_2$.
+
+Las historia serial equivalente es $H_1 \equiv H_s = T_3;T_1;T_2 = wl_3(B);rl_3(B);rl_3(C);u_3(B);u_3(C);rl_3(D);u_3(D);rl_1(A);rl_1(B);u_1(B);u_1(A);rl_1(C);u_1(C);wl_2(B);rl_2(C);wl_2(A);u_2(B);u_2(A);wl_2(C);u_2(C)$
+
+### (b) Responder: ¿Existe algún *schedule* legal no serializable que se pueda construir con $T_1$, $T_2$ y $T_3$? Justificar la respuesta. En caso afirmativo, mostrar un ejemplo y justificar
+
+~~- Probemos invirtiendo las aristas de $T_3$ a $T_2$. Estas son introducidas por los pares $wl_3(B);\dots;wl_2(B)$ y $rl_3(C);\dots;wl_2(C)$, por lo que necesitamos que las operaciones del primer término se realicen antes que las del segundo.~~
+~~- Debemos asegurarnos de preservar las otras aristas para no romper el ciclo que intentamos formar. $T_3 \xrightarrow{B} T_1$ se genera con $wl_3(B);rl_1(B)$, luego las $T_1 \xrightarrow{A,B,C} T_2$ se generan con $rl_1(A);wl_2(A)$, $rl_1(B);wl_2(B)$, $rl_1(C);wl_2(C)$~~
+~~- Por lo tanto debemos cumplir los siguientes órdenes:~~
+~~  - $wl_3(B);rl_1(B)$. (a)~~
+~~  - $rl_1(A);wl_2(A)$.~~
+~~  - $rl_1(B);wl_2(B)$. (b)~~
+~~  - $rl_1(C);wl_2(C)$.~~
+~~  - $wl_2(C);rl_3(C)$.~~
+~~  - $wl_2(B);wl_3(B)$. (c)~~
+
+$T_1=rl_1(A);rl_1(B);u_1(B);u_1(A);rl_1(C);u_1(C)$.
+
+$T_3=wl_3(B);rl_3(B);rl_3(C);u_3(B);u_3(C);rl_3(D);u_3(D)$.
+
+$T_2=wl_2(B);rl_2(C);wl_2(A);u_2(B);u_2(A);wl_2(C);u_2(C)$.
+
+- Con esto tengo una arista de $T_1$ a $T_3$: $rl_1(A);rl_1(B);u_1(B)$.
+- Con esto libero $B$ para que $T_2$ pueda iniciar y tener arista de $T_3$ a $T_2$: $wl_3(B);rl_3(B);rl_3(C);u_3(B)$.
+- Ejecutando todo $T_2$ consigo esa arista de $T_3$ a esta, y escribir $C$ para luego liberar el lock: $wl_2(B);rl_2(C);wl_2(A);u_2(B);u_2(A);wl_2(C);u_2(C)$.
+- Si ahora continuo con $T_1$ hasta terminar, como lee de lo que escribió $T_2$ habrá una arista de $T_2$ a $T_3$ completando un ciclo.
+- Necesito que $T_1$ llegue a liberar $A$, sino $T_2$ no podrá terminar por esperar el lock para realizar $wl_2(A)$.
+- También que $T_3$ llegue a liberar $C$, sino no podrá escribir $T_2$ ese item.
+
+$H=rl_1(A);rl_1(B);u_1(B);u_1(A);wl_3(B);rl_3(B);rl_3(C);u_3(B);u_3(C);wl_2(B);rl_2(C);wl_2(A);u_2(B);u_2(A);wl_2(C);u_2(C);rl_1(C);u_1(C);rl_3(D);u_3(D)$
+
+![Grafo de precedencia](./images/ej3.5b.drawio.svg)
+
+Al tener un ciclo es no serializable.
+
+<ins> Chequeamos que sea legal y consistente:</ins>
+
+1) *No podés leer sin el lock de lectura sobre ese item* ✅
+2) *En algún momento lo tenés que liberar* ✅
+3) *No podés escribir sin el lock de escritura sobre ese item* ✅
+4) *Si solicitaste lock de escritura sobre un item nadie lo puede leer ni escribir hasta que lo liberes* ✅
+5) *Si alguien tiene el lock de lectura sobre un item, no podés recibir el de escritura sobre el mismo hasta que esa lo libere* ✅
+
+### (c) Responder: ¿Es posible identificar en $H_1$ un caso en el que pueda producirse un *dirty read*? Justificar la respuesta. En caso afirmativo, mostrar un ejemplo y justificar
+
+Sí, encontré el siguiente: $wl_3(B);\dots;rl_1(B)$ como $T_1$ lee de $T_3$ sin que $T_3$ haya commiteado, es un *dirty read*.
+
+## Ejercicio 3.6
+
+
 
 [1] [A Critique of ANSI SQL Isolation Levels](https://arxiv.org/pdf/cs/0701157)
