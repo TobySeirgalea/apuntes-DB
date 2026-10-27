@@ -779,6 +779,17 @@ Convertimos cada una en **2PLE**:
 
 ### (a) Se pide hallar una historia $H$ tal que sea: Legal; No Serial; Serializable; Equivalente a la ejecución serial $T_3, T_2, T_1$ y ACA
 
+- Para que sea legal debe cumplir:
+  - *No podés leer sin el lock de lectura sobre ese item* 
+  - *En algún momento lo tenés que liberar*
+  - *No podés escribir sin el lock de escritura sobre ese item*
+  - *Si solicitaste lock de escritura sobre un item nadie lo puede leer ni escribir hasta que lo liberes*
+  - *Si alguien tiene el lock de lectura sobre un item, no podés recibir el de escritura sobre el mismo hasta que esa lo libere*
+- Para que sea no serial debe ser un intercalamiento de transacciones.
+- Para que sea serializable su *grafo de precedencias* debe ser acíclico.
+- Para que sea equivalente a la ejecución serial $T_3, T_2, T_1$, ese debe ser el orden topológico de su *grafo de precedencias*.
+- Para que sea **ACA** solo debe leer de transacciones ya commiteadas.
+
 ### (b) Hacer el $SG(H)$ para verificar la seriabilidad del $H$ hallado. Justificar las respuestas con respecto a la legalidad y recuperabilidad
 
 ### (c) Transformar las transacciones a 2PLE y 2PLR
