@@ -54,7 +54,8 @@ Ocurre cuando se le permite a una transacción leer un item de que ha sido modif
 
 Patrón: $w_1(X);\dots;r_2(X);\dots;(c_1 or a_1)$ [1]
 
->[!IMPORTANT] **Consultar**: El hecho de leer de una que aún no ha sido commiteada es *dirty read*, aunque si ella aborte la que leyó también lo haga ¿sigue siendo *dirty read*?
+>[!IMPORTANT]
+> **Consultar**: El hecho de leer de una que aún no ha sido commiteada es *dirty read*, aunque si ella aborte la que leyó también lo haga ¿sigue siendo *dirty read*?
 
 #### *Lost updates*
 
@@ -62,7 +63,8 @@ Lost Update: Ocurre cuando una transacción $T_1$ lee un item y luego $T_2$ lo e
 
 Patrón: $r_1(x);\dots;w_2(x);\dots;w_1(x);\dots;c_1$ (Lost Update) [1]
 
->[!IMPORTANT] **Consultar**: ¿Es la única forma en que puede ocurrir *lost update*?¿*dirty write* ($w_1(X);\dots;w_2(X)$) es considerado *lost update*? ¿En el patrón da igual si $T_2$ commiteó o no?
+>[!IMPORTANT]
+>**Consultar**: ¿Es la única forma en que puede ocurrir *lost update*?¿*dirty write* ($w_1(X);\dots;w_2(X)$) es considerado *lost update*? ¿En el patrón da igual si $T_2$ commiteó o no?
 
 #### *Phantom reads*
 
@@ -90,9 +92,11 @@ $H$ es **SR** $\iff$ grafo de precedencia no tiene ciclos.
 
 Órdenes topológicos del grafo de precedencia dan orden de *historia serial equivalente*
 
->[!NOTE] ¿Cómo obtener ordenes topológicos?: Buscás el nodo sin aristas de entrada, lo sacás con todas sus aristas salientes y lo ponés en una lista. Repetís el proceso hasta que no te queden nodos y lo tenés.
+>[!NOTE]
+>¿Cómo obtener ordenes topológicos?: Buscás el nodo sin aristas de entrada, lo sacás con todas sus aristas salientes y lo ponés en una lista. Repetís el proceso hasta que no te queden nodos y lo tenés.
 
->[!IMPORTANT] **CONSULTAR**: Si hay ciclo no es serializable?
+>[!IMPORTANT]
+> **CONSULTAR**: Si hay ciclo no es serializable?
 
 ### Esquema lock ternario
 
@@ -128,7 +132,8 @@ Como las <ins>lecturas de un mismo item por parte de múltiples transacciones no
 - Si $T_i$ hace un $rl_i(X)$ o $wl_i(X)$ y luego $T_j$, con $i \neq j$ hace un $wl_j(X)$ en $H$, ponés $T_i \xrightarrow T_j$. *Si pediste lock (lectura o escritura) sobre item y otra lo escribe después, entonces ponés arista*.
 - Si $T_i$ hace un $wl_i(X)$ y luego $T_j$, con $i \neq j$ hace un $rl_j(X)$ en $H$, ponés $T_i \xrightarrow T_j$. *Si escribiste un item y otra lo quiere leer, ponés arista*.
 
->[!IMPORTANT] **CONSULTAR**: Si hay ciclo no es serializable?
+>[!IMPORTANT]
+> **CONSULTAR**: Si hay ciclo no es serializable?
 
 #### *Lock upgrading/downgrading*
 
@@ -149,7 +154,8 @@ Para solucionar el problema del *deadlock por upgrading* agregamos el ***update 
 
 *Solo le concedemos el $ul(X)$ si nadie lo tiene y nadie tiene $wl(X)$*.
 
->[!IMPORTANT] *Locking* por si solo no garantiza <ins>serializabilidad</ins>, se necesitan protocolos para posicionar lock y unlocks.
+>[!IMPORTANT]
+> *Locking* por si solo no garantiza <ins>serializabilidad</ins>, se necesitan protocolos para posicionar lock y unlocks.
 
 ### Protocolos de *locking*
 
@@ -172,9 +178,11 @@ Transacción es 2PLE $\iff$ es 2PL y no libera ninguno de sus locks de escritura
 
 2PLE garantiza que historia es **ST**.
 
->[!IMPORTANT] 2PLE garantiza que historia es **ST**: ¿significa que toda historia compuesta por transacciones 2PLE es ST?
+>[!IMPORTANT]
+> 2PLE garantiza que historia es **ST**: ¿significa que toda historia compuesta por transacciones 2PLE es ST?
 
->[!IMPORTANT] Necesariamente debe liberarlos después que los de lectura?
+>[!IMPORTANT]
+> Necesariamente debe liberarlos después que los de lectura?
 
 #### 2PLR o SS2PL (*rigurous two phase locking*)
 
@@ -207,7 +215,8 @@ Si $T_i$ quiere realizar un lock sobre un item y no puede porque $T_j$ ya tiene 
   - Si $T_i$ es más viejo que $T_j \xrightarrow T_j$ aborta y reinicia más tarde con el mismo timestamp.
   - Si $T_i$ más joven que $T_j \xrightarrow T_i$ espera.
 
->[!NOTE] $TS(T_i) \lt TS(T_j) \iff$ $T_i$ es más viejo que $T_j$.
+>[!NOTE]
+> $TS(T_i) \lt TS(T_j) \iff$ $T_i$ es más viejo que $T_j$.
 
 ##### Otros esquemas
 
@@ -463,7 +472,8 @@ Sí, las transacciones $T_1$ y $T_2$ cumplen con 2PL porque adquieren todos sus 
 
 $H=l_1(A);l_2(B);l_1(B);l_2(A);u_1(A);u_1(B);u_2(B);u_2(A)$
 
->[!NOTE] Notar que dadas transacciones 2PL, podemos tener una historia que no lo sea.
+>[!NOTE]
+> Notar que dadas transacciones 2PL, podemos tener una historia que no lo sea.
 
 ## Ejercicio 3.1
 
@@ -536,7 +546,8 @@ Una transacción es 2PL $\iff$ solicita todos sus *locks* antes de liberar el pr
 - $T_4$ ❌, Versión 2PL: $T_4=wl_2(A);wl_4(D);u_4(A);u_4(D)$.
 - $T_5$ ❌, Versión 2PL: $T_5=rl_5(B);wl_5(A);u_5(B);u_5(A)$.
 
->[!IMPORTANT] ¿Ni siquiera es legal no? porque $T_2$ y $T_1$ mantienen su $rl(A)$ al momento de que $T_4$ escribe.
+>[!IMPORTANT]
+> ¿Ni siquiera es legal no? porque $T_2$ y $T_1$ mantienen su $rl(A)$ al momento de que $T_4$ escribe.
 
 ### (d) Sobre el ítem anterior ubicar commits para que sean 2PL estricto y 2PL riguroso
 
@@ -683,7 +694,8 @@ Sí, encontré el siguiente: $wl_3(B);\dots;rl_1(B)$ como $T_1$ lee de $T_3$ sin
   - Analizamos las escrituras:
     - $wl_3(Y)$ no tiene problemas porque nadie tenía un lock sobre $Y$.
     - $wl_2(X)$ previo a ella, $T_3$ y $T_2$ tenían locks de lectura sobre $X$. $T_3$ lo liberó antes de esta escritura pero $T_2$ no, por lo que ocurre un *upgrading lock*, donde $T_2$ pasa de tener el único lock de lectura a tener el de escritura exclusivo.
-    >[!IMPORTANT] Consultar si esto no rompe legalidad de la historia
+    >[!IMPORTANT]
+    > Consultar si esto no rompe legalidad de la historia
     - $wl_1(X)$ adquiere el lock de escritura cuando era el único que poseía el de lectura. Es otro *upgrading lock*.
 - *Si solicitaste lock de escritura sobre un item nadie lo puede leer ni escribir hasta que lo liberes* ✅
   - Entre $wl_3(Y)$ y $u_3(Y)$ no hay escrituras ni lecturas sobre $Y$.
