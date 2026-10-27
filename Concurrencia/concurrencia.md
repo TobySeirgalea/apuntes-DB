@@ -757,8 +757,18 @@ Convertimos cada una en **2PLE**:
 - $T_3=rl_3(X);wl_3(Y);u_3(X);c_3;u_3(Y);$ Adquiere todos sus locks antes de liberar el primero y los de escritura los libera después de su *commit* o *abort* $\therefore$ **2PLE** ✅.
 - $T_4=rl_4(Y);rl_4(X);u_4(X);u_4(Y);c_4;$ Adquiere todos sus locks antes de liberar el primero y los de escritura los libera después de su *commit* o *abort* $\therefore$ **2PLE** ✅.
 
->[!IMPORTANT] ¿A qué se refiere con modificar $H_1$ para que las transacciones sean 2PLE?¿Alcanza con hacer que cada transacción de $trans(H_1)$ sea 2PLE?
+>[!IMPORTANT]
+> ¿A qué se refiere con modificar $H_1$ para que las transacciones sean 2PLE?¿Alcanza con hacer que cada transacción de $trans(H_1)$ sea 2PLE?
 
+## Ejercicio 3.7
 
+> Dadas las siguientes transacciones: $ \\ T1 = rl_1(B); u_1(B); wl_1(A); u_1(A) \\ T_2 = rl_2(A); wl_2(A); u_2(A) \\ T_3 = rl_3(A); rl_3(B); u_3(A); u_3(B) \\$
+> Nota: Asumir que entre un $wl$ y su correspondiente $ul$ ocurre solamente una escritura del ítem (no ocurre una lectura).
+
+### (a) Se pide hallar una historia $H$ tal que sea: Legal; No Serial; Serializable; Equivalente a la ejecución serial $T_3, T_2, T_1$ y ACA
+
+### (b) Hacer el $SG(H)$ para verificar la seriabilidad del $H$ hallado. Justificar las respuestas con respecto a la legalidad y recuperabilidad
+
+### (c) Transformar las transacciones a 2PLE y 2PLR
 
 [1] [A Critique of ANSI SQL Isolation Levels](https://arxiv.org/pdf/cs/0701157)
