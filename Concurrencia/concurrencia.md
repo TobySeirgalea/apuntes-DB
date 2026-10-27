@@ -172,6 +172,8 @@ Transacción es 2PLE $\iff$ es 2PL y no libera ninguno de sus locks de escritura
 
 2PLE garantiza que historia es **ST**.
 
+>[!IMPORTANT] 2PLE garantiza que historia es **ST**: ¿significa que toda historia compuesta por transacciones 2PLE es ST?
+
 >[!IMPORTANT] Necesariamente debe liberarlos después que los de lectura?
 
 #### 2PLR o SS2PL (*rigurous two phase locking*)
@@ -661,6 +663,101 @@ Al tener un ciclo es no serializable.
 Sí, encontré el siguiente: $wl_3(B);\dots;rl_1(B)$ como $T_1$ lee de $T_3$ sin que $T_3$ haya commiteado, es un *dirty read*.
 
 ## Ejercicio 3.6
+
+>Dada la siguiente historia $H_1$, sobre el conjunto de transacciones $T_1, T_2, T_3, T_4$ y el conjunto de items $X, Y$:
+>
+> $H_1 = rl_3(X); rl_2(X); wl_3(Y); u_3(X); wl_2(X); u_3(Y); rl_4(Y); u_2(X); rl_1(Y); rl_4(X); u_1(Y);u_4(X); wl_1(X); u_4(Y); u_1(X); c_3; c_2; c_4; c_1$
+>Nota: Asuma que entre un wl y su correspondiente ul ocurre solamente una escritura del ítem (no ocurre una lectura)
+
+### (a) Responder: ¿$H_1$ es legal?¿Todas las $T_i$ son 2PL?
+
+<ins> Chequeamos que sea legal y consistente:</ins>
+
+- *No podés leer sin el lock de lectura sobre ese item* ✅
+  - $rl_3(X); rl_2(X);$ obtienen el lock de lectura que estaba libre y lo comparten.
+  - $rl_4(Y)$, pero antes liberó $T_3$ el lock de escritura que tenía sobre $Y$, ese era el único lock activo sobre el elemento previo a la lectura de $T_4$.
+  - $rl_1(Y); rl_4(X);$ leen $X$ y $Y$ pero antes $T_3$ y $T_2$, que eran los únicos con lock de lectura sobre $X$ los liberaron. $rl_4(X)$ toma el lock que liberó $T_2$ tras escribir $X$.
+- *En algún momento lo tenés que liberar* ✅
+  - Para cada lectura y escritura pudimos hallar un $u_i$ asociado.
+- *No podés escribir sin el lock de escritura sobre ese item* ✅
+  - Analizamos las escrituras:
+    - $wl_3(Y)$ no tiene problemas porque nadie tenía un lock sobre $Y$.
+    - $wl_2(X)$ previo a ella, $T_3$ y $T_2$ tenían locks de lectura sobre $X$. $T_3$ lo liberó antes de esta escritura pero $T_2$ no, por lo que ocurre un *upgrading lock*, donde $T_2$ pasa de tener el único lock de lectura a tener el de escritura exclusivo.
+    >[!IMPORTANT] Consultar si esto no rompe legalidad de la historia
+    - $wl_1(X)$ adquiere el lock de escritura cuando era el único que poseía el de lectura. Es otro *upgrading lock*.
+- *Si solicitaste lock de escritura sobre un item nadie lo puede leer ni escribir hasta que lo liberes* ✅
+  - Entre $wl_3(Y)$ y $u_3(Y)$ no hay escrituras ni lecturas sobre $Y$.
+  - Entre $wl_2(X)$ y $u_2(X)$ no hay escrituras ni lecturas sobre $X$.
+  - Entre $wl_1(X)$ y $u_1(X)$ no hay escrituras ni lecturas sobre $X$.
+- *Si alguien tiene el lock de lectura sobre un item, no podés recibir el de escritura sobre el mismo hasta que esa lo libere* ✅
+  - $wl_2(X)$ escribe pero siendo el único con lock de lectura.
+  - $wl_1(X)$ lo mismo. Nadie tenía, excepto él, lock de lectura sobre el ítem.
+$\therefore$ Es legal.
+
+<ins>**¿Son todas 2PL?**</ins>
+
+Son **2PL** $\iff$ adquieren todos su locks antes de liberar el primero.
+
+- $T_1 = rl_1(Y);u_1(Y);wl_1(X);u_1(X);c_1;$ No, pues $u_1(Y);wl_1(X)$ libera un lock y luego adquiere otro.
+- $T_2 = rl_2(X);wl_2(X);u_2(X);c_2;$ Sí, adquirió los locks antes de liberarlos con $u_2(X)$.
+- $T_3 = rl_3(X);wl_3(Y);u_3(X);u_3(Y);c_3;$ También es **2PL**.
+- $T_4 = rl_4(Y);rl_4(X);u_4(X);u_4(Y);c_4;$ También es **2PL**.
+
+### (b) Hacer el $SG(H_1)$ e indicar si es serializable. En caso afirmativo obtener todas las historias seriales equivalentes
+
+Es *serializable* $\iff$ su *grafo de precedencia* es *acíclico*.
+
+![Grafo de precedencia](./images/ej3.6.drawio.svg)
+
+$\therefore$ es *serializable*.
+
+Para obtener todas las *historias seriales equivalentes* debo obtener todos los posibles *órdenes topológicos* de su *grafo de precedencia*.
+
+- Calculo su orden topológico:
+  - El único con grado de entrada cero es $T_3$, lo saco.
+  - Me queda $T_2$ como el único con grado de entrada cero, lo saco.
+  - Me queda $T_4$ como el único con grado de entrada cero, lo saco.
+  - Quedó solo $T_1$.
+  - $\therefore$ el orden topológico es $T_3;T_2;T_4;T_1$ y es único, ya que en cada paso solo teníamos una opción con grado cero disponible.
+
+### (c) Clasificar $H_1$ con respecto a la recuperabilidad: **ST**, **ACA**, **RC**, **NoRC**. Justificar
+
+- Para que sea **RC** $\iff$ todas las transacciones commitean luego de las que leen.
+  - $T_4$ y $T_1$ leen $Y$ de $T_3$ pero $c_3 \lt c_4 \lt c_1$.
+  - $T_4$ lee $X$ de $T_2$ pero $c_2 \lt c_4$.
+  - $\therefore$ es **RC**.
+- Para que sea **ACA** $\iff$ todos leen de transacciones ya commiteadas.
+  - $T_4$ y $T_1$ leen $Y$ de $T_3$ pero $rl_4(Y) \lt c_3$ $rl_1(Y) \lt c_3 \lt c_1$.
+  - $\therefore$ No es **ACA**, por lo tanto tampoco **ST**, ni **RG** porque **RG** $\subset$ **ST** $\subset$ **ACA** $\subset$ **RC**.
+
+Luego $H_1$ es solo una *historia recuperable* (**RC**).
+
+### (d) Idem anterior pero cambiando el orden de los commits por: $c_4; c_1; c_2; c_3$
+
+Es decir: $H_1 = rl_3(X); rl_2(X); wl_3(Y); u_3(X); wl_2(X); u_3(Y); rl_4(Y); u_2(X); rl_1(Y); rl_4(X); u_1(Y);u_4(X); wl_1(X); u_4(Y); u_1(X);c_4; c_1; c_2; c_3$
+
+- Es **RC** $\iff$ todas las transacciones commitean luego de las que leen.
+  - $T_4$ y $T_1$ leen de $T_3$ el item $Y$ pero el orden de los commits es: $c_4; c_1; c_2; c_3$, por lo que commitean antes de aquella transacción de la que leen. $\therefore$ ahora son **NoRC**.
+
+### (e) Ubicar los commits y modificar $H_1$ para que las transacciones sean *2PL estrictas* (**2PLE**)
+
+Una transacción es **2PLE** $\iff$ es **2PL** y no liberan sus *locks de escritura* hasta después de hacer *commit* o *abort*.
+
+Primero separamos en transacciones:
+
+- $T_1=rl_1(Y);u_1(Y);wl_1(X);u_1(X);c_1$.
+- $T_2=rl_2(X);wl_2(X);u_2(X);c_2;$.
+- $T_3=rl_3(X);wl_3(Y);u_3(X);u_3(Y);c_3;$.
+- $T_4=rl_4(Y);rl_4(X);u_4(X);u_4(Y);c_4;$.
+
+Convertimos cada una en **2PLE**:
+
+- $T_1=rl_1(Y);wl_1(X);u_1(Y);c_1;u_1(X);$. Adquiere todos sus locks antes de liberar el primero y los de escritura los libera tras su *commit* o *abort* $\therefore$ **2PLE** ✅.
+- $T_2=rl_2(X);wl_2(X);c_2;u_2(X);$ Adquiere todos sus locks antes de liberar el primero y los de escritura los libera después de su *commit* o *abort* $\therefore$ **2PLE** ✅.
+- $T_3=rl_3(X);wl_3(Y);u_3(X);c_3;u_3(Y);$ Adquiere todos sus locks antes de liberar el primero y los de escritura los libera después de su *commit* o *abort* $\therefore$ **2PLE** ✅.
+- $T_4=rl_4(Y);rl_4(X);u_4(X);u_4(Y);c_4;$ Adquiere todos sus locks antes de liberar el primero y los de escritura los libera después de su *commit* o *abort* $\therefore$ **2PLE** ✅.
+
+>[!IMPORTANT] ¿A qué se refiere con modificar $H_1$ para que las transacciones sean 2PLE?¿Alcanza con hacer que cada transacción de $trans(H_1)$ sea 2PLE?
 
 
 
