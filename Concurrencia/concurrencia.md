@@ -790,6 +790,49 @@ Convertimos cada una en **2PLE**:
 - Para que sea equivalente a la ejecución serial $T_3, T_2, T_1$, ese debe ser el orden topológico de su *grafo de precedencias*.
 - Para que sea **ACA** solo debe leer de transacciones ya commiteadas.
 
+Para que su orden serial sea $T_3;T_2;T_1$ el grafo de precedencias debería ser el siguiente:
+
+![Grafo precedencias](./images/ej3.7a.drawio.svg)
+
+Añadimos las etiquetas de los items que nos permitirían tener esa arista.
+
+Eso ya nos impone las siguientes restricciones en nuestra $H$:
+
+- $rl_3(A) \lt wl_1(A)$, para tener la arista $T_3 \xrightarrow{A} T_1$.
+- $rl_3(A) \lt wl_2(A)$, para tener la arista $T_3 \xrightarrow{A} T_2$.
+- $wl_2(A) \lt wl_1(A) \lor rl_2(A) \lt wl_1(A)$ para tener la arista $T_2 \xrightarrow{A} T_1$. Notar que $rl_2(A) \lt wl_2(A)$.
+
+La historia hasta el momento nos quedaría:
+
+Operaciones $= \{\cancel{rl_1(B)};u_1(B);\cancel{wl_1(A)};u_1(A);\cancel{rl_2(A)};\cancel{wl_2(A)};u_2(A);\cancel{rl_3(A)};rl_3(B);u_3(A);u_3(B)\}$
+
+$H_{parcial} = rl_3(A); \dots; wl_2(A); \dots; rl_2(A); \dots; rl_1(B); \dots ;wl_1(A); \dots$
+
+Añadimos los $u_i{A}$ de tal forma que se cumpla que:
+
+- *No podés leer sin el lock de lectura sobre ese item* 
+- *En algún momento lo tenés que liberar*
+- *No podés escribir sin el lock de escritura sobre ese item*
+- *Si solicitaste lock de escritura sobre un item nadie lo puede leer ni escribir hasta que lo liberes*
+- *Si alguien tiene el lock de lectura sobre un item, no podés recibir el de escritura sobre el mismo hasta que esa lo libere*
+
+Operaciones $= \{\cancel{rl_1(B)};u_1(B);\cancel{wl_1(A)};\cancel{u_1(A)};\cancel{rl_2(A)};\cancel{wl_2(A)};\cancel{u_2(A)};\cancel{rl_3(A)};rl_3(B);\cancel{u_3(A)};u_3(B)\}$
+
+$H_{parcial} = rl_3(A); \dots; u_3(A);\dots; wl_2(A); \dots; rl_2(A);\dots; u_2(A) ;\dots; rl_1(B); \dots ;wl_1(A); \dots$
+
+Para que sea **ACA** solo se puede leer de transacciones commiteadas. $\therefore c_3 \lt rl_2(A)$.
+
+Operaciones $= \{\cancel{rl_1(B)};u_1(B);\cancel{wl_1(A)};\cancel{u_1(A)};\cancel{rl_2(A)};\cancel{wl_2(A)};\cancel{u_2(A)};\cancel{rl_3(A)};rl_3(B);\cancel{u_3(A)};\cancel{u_3(B)}\}$
+
+$H_{parcial} = rl_3(A); \dots; u_3(A);\dots; wl_2(A); u_3(B); c_3;\dots; rl_2(A);\dots; u_2(A) ;\dots; rl_1(B); \dots ;wl_1(A); \dots$
+
+Ahora ubico las que faltan
+
+Operaciones $= \{\cancel{rl_1(B)};u_1(B);\cancel{wl_1(A)};\cancel{u_1(A)};\cancel{rl_2(A)};\cancel{wl_2(A)};\cancel{u_2(A)};\cancel{rl_3(A)};\cancel{rl_3(B)};\cancel{u_3(A)};\cancel{u_3(B)}\}$
+
+$H_{parcial} = rl_3(A);\dots;rl_3(B);\dots; u_3(A);\dots; wl_2(A); u_3(B); c_3;\dots; rl_2(A);\dots; u_2(A) ;\dots; rl_1(B); \dots; u_1(B) ;\dots ;wl_1(A); \dots$
+
+
 ### (b) Hacer el $SG(H)$ para verificar la seriabilidad del $H$ hallado. Justificar las respuestas con respecto a la legalidad y recuperabilidad
 
 ### (c) Transformar las transacciones a 2PLE y 2PLR
