@@ -154,6 +154,16 @@ Para solucionar el problema del *deadlock por upgrading* agregamos el ***update 
 
 *Solo le concedemos el $ul(X)$ si nadie lo tiene y nadie tiene $wl(X)$*.
 
+>[!NOTE]
+> Una transacción con un *shared lock* pero sin un *update lock* no puede recibir un *write lock*, incluso aunque en general no prohibimos que una transacción tenga múltiples locks sobre un elemento, por ejemplo de lectura y escritura en simultáneo. [2](pag. 945)
+
+- Si ya hay transacciones que tienen un *read lock* sobre el ítem y otra nos solicita un *upgrade lock* sobre el mismo ítem → se lo concedemos.
+- Una vez concedimos a una transacción un *update lock* sobre un ítem, ya no concedemos más locks de ningún tipo sobre ese ítem a cualquier transacción que nos lo solicite hasta que el que tiene el *update lock* lo libere.
+  - ¿Por qué? Porque la idea es que, aunque debamos denegarle el *upgrading* a escritura sobre el ítem a la transacción que tiene el *update lock* porque otras tienen un *read lock* sobre el mismo ítem, eventualmente estas terminarán y podremos permitir que el poseedor de *upgrade lock* promocione a *write lock* y pueda escribir. Si siguiéramos otorgando *read locks* a otras transacciones podríamos generar *starvation* sobre la transacción con el *update lock*.
+
+>[!IMPORTANT]
+> En el *update lock* pueden varios tener locks de lectura no upgradeables a lock de lectura y uno solo tener el upgradeable no? En dicho caso, los que tienen locks de lectura compartidos no upgradeables qué pasa cuando el que tiene el upgradeable quiere convertirlo en lock de escritura? lo liberan automaticamente o el upgradeable debe esperar a que lo hagan ellos manualmente? La matriz permite que si tenes uno de lectura y solicitan el de ul lo reciba por lo que acabarían conviviendo los de lectura con los ul?
+
 >[!IMPORTANT]
 > *Locking* por si solo no garantiza <ins>serializabilidad</ins>, se necesitan protocolos para posicionar lock y unlocks.
 
@@ -774,7 +784,7 @@ Convertimos cada una en **2PLE**:
 
 ## Ejercicio 3.7
 
-> Dadas las siguientes transacciones: $ \\ T1 = rl_1(B); u_1(B); wl_1(A); u_1(A) \\ T_2 = rl_2(A); wl_2(A); u_2(A) \\ T_3 = rl_3(A); rl_3(B); u_3(A); u_3(B) \\$
+> Dadas las siguientes transacciones: $ \\ T_1 = rl_1(B); u_1(B); wl_1(A); u_1(A) \\ T_2 = rl_2(A); wl_2(A); u_2(A) \\ T_3 = rl_3(A); rl_3(B); u_3(A); u_3(B) \\$
 > Nota: Asumir que entre un $wl$ y su correspondiente $ul$ ocurre solamente una escritura del ítem (no ocurre una lectura).
 
 ### (a) Se pide hallar una historia $H$ tal que sea: Legal; No Serial; Serializable; Equivalente a la ejecución serial $T_3, T_2, T_1$ y ACA
@@ -820,7 +830,7 @@ Operaciones $= \{\cancel{rl_1(B)};u_1(B);\cancel{wl_1(A)};\cancel{u_1(A)};\cance
 
 $H_{parcial} = rl_3(A); \dots; u_3(A);\dots; wl_2(A); \dots; rl_2(A);\dots; u_2(A) ;\dots; rl_1(B); \dots ;wl_1(A); \dots$
 
-Para que sea **ACA** solo se puede leer de transacciones commiteadas. $\therefore c_3 \lt rl_2(A)$.
+Para que sea **ACA** solo se puede leer de transacciones commiteadas.
 
 Operaciones $= \{\cancel{rl_1(B)};u_1(B);\cancel{wl_1(A)};\cancel{u_1(A)};\cancel{rl_2(A)};\cancel{wl_2(A)};\cancel{u_2(A)};\cancel{rl_3(A)};rl_3(B);\cancel{u_3(A)};\cancel{u_3(B)}\}$
 
@@ -828,13 +838,162 @@ $H_{parcial} = rl_3(A); \dots; u_3(A);\dots; wl_2(A); u_3(B); c_3;\dots; rl_2(A)
 
 Ahora ubico las que faltan
 
-Operaciones $= \{\cancel{rl_1(B)};u_1(B);\cancel{wl_1(A)};\cancel{u_1(A)};\cancel{rl_2(A)};\cancel{wl_2(A)};\cancel{u_2(A)};\cancel{rl_3(A)};\cancel{rl_3(B)};\cancel{u_3(A)};\cancel{u_3(B)}\}$
+Operaciones $= \{\cancel{rl_1(B)};\cancel{u_1(B)};\cancel{wl_1(A)};\cancel{u_1(A)};\cancel{rl_2(A)};\cancel{wl_2(A)};\cancel{u_2(A)};\cancel{rl_3(A)};\cancel{rl_3(B)};\cancel{u_3(A)};\cancel{u_3(B)}\}$
 
-$H_{parcial} = rl_3(A);\dots;rl_3(B);\dots; u_3(A);\dots; wl_2(A); u_3(B); c_3;\dots; rl_2(A);\dots; u_2(A) ;\dots; rl_1(B); \dots; u_1(B) ;\dots ;wl_1(A); \dots$
+$H_{final} = rl_3(A);rl_3(B);u_3(A);wl_2(A);u_3(B);c_3;rl_2(A);u_2(A);c_2;rl_1(B);u_1(B);wl_1(A);u_1(A);c_1$
 
+Ahora chequeamos que cumpla:
+
+- *No podés leer sin el lock de lectura sobre ese item* ✅.
+- *En algún momento lo tenés que liberar* ✅.
+- *No podés escribir sin el lock de escritura sobre ese item* ✅.
+- *Si solicitaste lock de escritura sobre un item nadie lo puede leer ni escribir hasta que lo liberes* ✅.
+- *Si alguien tiene el lock de lectura sobre un item, no podés recibir el de escritura sobre el mismo hasta que esa lo libere* ✅.
 
 ### (b) Hacer el $SG(H)$ para verificar la seriabilidad del $H$ hallado. Justificar las respuestas con respecto a la legalidad y recuperabilidad
 
+El *grafo de precedencia* es el mismo que para el item anterior y es *acícliclo* por lo que es *serializable*.
+
+<ins>Análisis de recuperabilidad:</ins>
+
+- Es **RC** $\iff$ todas las transacciones commitean después que lo hacen aquellas de las cuales leen. Como nadie lee de nadie, entonces es **RC** vacuamente.
+- Es **ACA** $\iff$ solo leen de transacciones ya commiteadas. Como nadie lee de nadie, es **ACA** vacuamente.
+- Es **ST** $\iff$ nadie lee ni escribe un item que antes fue escrito por una transacción que aún no commiteó o aún no abortó. El único item que es escrito es $wl_2(A)$ y es escrito por $wl_1(A)$ pero tras el commit de $T_2$, así que es **ST**.
+- Es **RG** $\iff$ es **ST** y al momento de escritura de un item todos sus lectores previos a ella ya abortaron o commitearon. No cumple por: $rl_3(A);rl_3(B);u_3(A);wl_2(A)$ $T_2$ escribe $A$ antes de que $T_3$, que lo leyó, haya commiteado o abortado.
+
+>[!IMPORTANT]
+> Consultar si es así como aplica la definición de **RG** o si solo se deben considerar las lecturas de transacciones, es decir que en este caso como 3 lee un valor que ninguna escribió en la historia no consideramos a $T_3$ como lectora de $B$.
+
 ### (c) Transformar las transacciones a 2PLE y 2PLR
 
+Versiones **2PLE**:
+
+Es **2PLE** $\iff$ es **2PL** y no libera sus *locks de escritura* hasta después de hacer *commit* o *abort*.
+
+- $T_1 = rl_1(B);wl_1(A);u_1(B);c_1;u_1(A)$.
+- $T_2 = rl_2(A);wl_2(A);c_2;u_2(A)$.
+- $T_3 = rl_3(A);rl_3(B);u_3(A);u_3(B);c_3$.
+
+Versiones **2PLR**:
+
+Es **2PLR** $\iff$ es **2PL** y no libera sus locks de escritura ni lectura hasta después de hacer *commit* o *abort*.
+
+- $T_1 = rl_1(B);wl_1(A);c_1;u_1(B);u_1(A)$.
+- $T_2 = rl_2(A);wl_2(A);c_2;u_2(A)$.
+- $T_3 = rl_3(A);rl_3(B);c_3;u_3(A);u_3(B)$.
+
+## Ejercicio 3.8
+
+> Dadas las siguientes transacciones:
+> $\\ T_1 = rl_1(A); r_1(A); rl_1(B); r_1(B); wl_1(B); w_1(B); u_1(A); u_1(B) \\ T_2 = rl_2(A); r_2(A); rl_2(B); r_2(B); u_2(A); u_2(B)$.
+
+### (a) Realizar un entrelazado serializable no serial
+
+- Para que sea *serializable* su *grafo de precedencia* debe ser *acíclico*.
+- Para que sea no serial debe tener entrelazadas algunas de sus transacciones.
+- Hay una sola escritura y es sobre el item $B$ por parte de $T_1$. $T_2$ lee el item $B$, por lo que la única arista que vamos a tener en el *grafo de precedencia* es $T_1 \xrightarrow{B} T_2$ o de $T_2 \xrightarrow{B} T_1$, pero no ambas. Así que va a ser *acícliclo* y, por lo tanto, *serializable*.
+- Proponemos un entrelazamiento cualquiera, pero que sea una *historia legal*.
+
+$H=rl_1(A); r_1(A);rl_2(A); r_2(A);rl_1(B); r_1(B);rl_2(B); r_2(B);u_2(A); u_2(B);wl_1(B); w_1(B); u_1(A);$
+
+### (b) Proponer un entrelazado donde un *upgrade lock* sea denegado y deba esperar
+
+Recordar que un *upgrade lock* es pasar de un lock de lectura compartido a uno de escritura exclusivo y solo puede ser concedido si esa transacción es la única que posee un lock de lectura activo sobre el elemento, caso contrario deberá esperar a que las demás liberen sus locks de lectura para realizar su *upgrade*. No confundir con *update lock* que es el que al tomarlo, solo uno puede realizar el *upgrade* a lock de escritura.
+
+$H=rl_1(A); r_1(A); rl_1(B); r_1(B);rl_2(A); r_2(A); rl_2(B); r_2(B);\underline{ul_1(B)};u_2(A); u_2(B);ul_1(B);wl_1(B); w_1(B); u_1(A); u_1(B)$.
+
+## Ejercicio 3.9
+
+> Tomando las siguientes transacciones: $\\ T_1=rl_1(A);r_1(A);wl_1(A);w_1(A);u_1(A) \\ T_2 = rl_2(A);r_2(A);wl_2(A);w_2(A);u_2(A) \\$
+
+### (a) Proponer un entrelazamiento que de un *deadlock* como resultado
+
+$H = rl_1(A);rl_2(A);r_1(A);r_2(A);wl_1(A);wl_2(A);w_1(A);w_2(A);u_1(A);u_2(A)$
+
+Tanto $T_1$ como $T_2$ adquieren el lock de lectura compartido, pero ninguno puede realizar el *upgrade* para el de escritura y poder avanzar para liberar el lock sobre $A$.
+
+### (b) Reescribir las transacciones, pero ahora, usando un modelo que soporte *update lock* y verificar si puede resolverse el *deadlock* anterior
+
+$\\ T_1=ul_1(A);r_1(A);wl_1(A);w_1(A);u_1(A) \\ T_2 = rl_2(A);r_2(A);wl_2(A);w_2(A);u_2(A) \\$
+
+Veamos la misma historia que antes generó un *deadlock*:
+
+$H = ul_1(A);rl_2(A) Denied;r_1(A);wl_1(A);w_1(A);u_1(A);rl_2(A);r_2(A);wl_2(A);w_2(A);u_2(A)$
+
+Ahora si que puede terminar.
+
+>[!IMPORTANT]
+> **¿Y si $T_2$ obtenía lock de lectura antes cómo sería?**
+> $H = rl_2(A);ul_1(A);r_1(A);r_2(A);wl_1(A) Denied;wl_2(A) Denied;\dots$ $\therefore$ *deadlock*. **Este deadlock es inevitable o apliqué mal el locking?**
+
+>[!NOTE]
+>*Locking* por si solo **no** garantiza ausencia de *deadlocks*.
+
+## Ejercicio 3.10
+
+> Dadas las siguientes historias:
+> $\\ H_1 = r_1(A); r_2(B); r_3(C); r_1(B); r_2(C); r_3(D); w_1(C); w_2(D); w_3(E) \\ H_2 = r_1(A); r_2(B); r_3(C); r_1(B); r_2(C); r_3(D); w_1(A); w_2(B); w_3(C) \\ H_3 = r_1(A); r_2(B); r_3(C); r_1(B); r_2(C); r_3(A); w_1(A); w_2(B); w_3(C) \\$
+
+### (a) Insertar locks de lectura y escritura de tal forma que no haya upgrade locks. Explicar que ocurriría en la ejecución con un planificador/scheduler que soporte locks de lectura y de escritura
+
+$H_1 = rl_1(A);r_1(A);u_1(A);rl_2(B);r_2(B);u_2(B);rl_3(C);r_3(C);u_3(C);rl_1(B);r_1(B);u_1(B);rl_2(C);r_2(C);u_2(C);rl_3(D);r_3(D);u_3(D);wl_1(C);w_1(C);u_1(C);wl_2(D);w_2(D);u_2(D);wl_3(E);w_3(E);u_3(E)$
+
+$H_2 = rl_1(A);r_1(A);u_1(A);rl_2(B);r_2(B);u_2(B);rl_3(C);r_3(C);u_3(C);rl_1(B);r_1(B);u_1(B);rl_2(C);r_2(C);u_2(C);rl_3(D);r_3(D);u_3(D);wl_1(A);w_1(A);u_1(A);wl_2(B);w_2(B);u_2(B);wl_3(C);w_3(C);u_3(C)$
+
+$H_3 = rl_1(A);r_1(A);u_1(A);rl_2(B);r_2(B);u_2(B);rl_3(C);r_3(C);u_3(C);rl_1(B);r_1(B);u_1(B);rl_1(C);r_2(C);u_2(C);rl_3(A);r_3(A);u_3(A); wl_1(A);w_1(A);u_1(A);wl_2(B);w_2(B);u_2(B);wl_3(C);w_3(C);u_3(C)$
+
+En este caso al no haber *upgrade lock* si tenés el lock de lectura sobre un elemento lo tenés que liberar antes de intentar adquirir el de escritura. Si pudieras saber de antemano las operaciones de la transacción podría haber solicitado directamente el *exclusive lock* para casos donde se quiere leer y escribir consecutivamente.
+
+>[!NOTE]
+> Podemos usar el exclusive lock también para leer, nada nos lo impide, por ejemplo si tenés $r_1(A);w_1(A)$ conviene $wl_1(A);r_1(A);w_1(A)$ en vez de $rl_1(A);r_1(A);u_1(A);wl_1(A);w_1(A);u_1(A)$ que sería lo que haríamos si no tuviéramos *upgrade locking*[2](pag. 941)
+
+>[!IMPORTANT]
+> Consultar: Si no tenés *upgrade locking* para hacer $r_1(A);w_1(A)$ no te queda otra que hacer $rl_1(A);r_1(A);u_1(A);wl_1(A);w_1(A);u_1(A)$?
+
+Para cada lock solicitado se lo añade a la lock table con el tipo de lock que es, el item sobre el que actúa y a qué transacción pertenece.
+
+### (b) Insertar locks de lectura y escritura de tal forma que si haya upgrade locks y describir que ocurre con la ejecución
+
+$H_1 = rl_1(A);r_1(A);rl_2(B);r_2(B);rl_3(C)r_3(C);rl_1(B);r_1(B);rl_2(C);r_2(C);u_3(D);r_3(D);u_3(C);u_2(C);wl_1(C);w_1(C);u_1(C);u_3(D);wl_2(D);w_2(D);u_2(D);wl_3(E);w_3(E);u_3(E);u_1(A);u_2(B);u_1(B)$
+
+Antes de conceder el *upgrade* de lock de lectura compartido al de escritura exclusivo tenemos que esperar a que los que tienen el lock de escritura lo liberen. En este caso por como puse los *unlocks* no hubieron denegaciones, pero es algo que podría suceder dependiendo la política del *scheduler*.
+
+$H_2 = rl_1(A);r_1(A);rl_2(B);r_2(B);rl_3(C);r_3(C);rl_1(B);r_1(B);rl_2(C);r_2(C);rl_3(D);r_3(D);wl_1(A)(upgrade~lock);w_1(A);u_1(B);wl_2(B)(upgrade~lock);w_2(B);u_2(C);wl_3(C)(upgrade~lock);w_3(C);u_1(A);u_2(B);u_3(C);u_3(D)$
+
+$H_3 = rl_1(A);r_1(A);rl_2(B);r_2(B);rl_3(C);r_3(C);rl_1(B);r_1(B);rl_2(C);r_2(C);rl_3(A);r_3(A);u_3(A);wl_1(A)(upgrade~lock);wl_1(A)(upgrade~lock);w_1(A);u_1(B);wl_2(B);w_2(B);u_2(B);u_2(C);wl_3(C);w_3(C);u_3(C);$
+
+### (c)  Insertar ahora locks de lectura, escritura y de actualización (update locks). Describir que ocurre en la ejecución
+
+$H_1 = rl_1(A);r_1(A);rl_2(B);r_2(B);rl_3(C);r_3(C);rl_1(B);r_1(B);rl_2(C);r_2(C);rl_3(D);r_3(D);ul_1(C);w_1(C);ul_2(D);w_2(D);ul_3(E);w_3(E);u_1(A);u_2(B);u_3(C);u_1(B);u_2(C);u_3(D);u_1(C);u_2(D);u_3(E)$
+
+Como vemos podemos conceder los *update locks* incluso cuando ya hay *read locks* sobre ese elemento, pero una vez otorgado el *update lock* sobre un elemento para una transacción no podemos otorgar más locks sobre ese elemento para ninguna transacción.
+
+En $H_1$ como los ítems que escribimos no los quisimos leer antes, entonces no sacamos tanto beneficio.
+
+$H_2 = ul_1(A);r_1(A);rl_2(B);r_2(B);rl_3(C);r_3(C);rl_1(B);r_1(B);rl_2(C);r_2(C);rl_3(D);r_3(D);w_1(A);w_2(B);w_3(C);u_1(A);u_2(B);u_3(C);u_1(B);u_2(C);u_3(D)$
+
+En este caso no puedo usar los *update locks* sobre los elementos que luego voy a escribir para las transacciones que lo harán porque entre la primer lectura y la escritura del item hay otra transacción que lo quiere leer. Sí se lo puedo otorgar a $T_1$ previo a $r_1(A)$ ya que ninguna otra transacción posterior quiere leer el ítem $A$. No se lo puedo otorgar a $T_2$ previo a $r_2(B)$ porque sino no podría permitir a $T_1$ leer $B$ antes de que $w_2(B)$, retrasándola por mucho más tiempo. Tampoco se lo puedo otorgar a $T_3$ previo a $r_3(C)$ porque sino $T_2$ no podría leer $C$ en $r_2(C)$ hasta que se haya ejecutado $u_3(C)$ después del $w_3(C)$ retrasándola por más tiempo.
+
+$H_3 = rl_1(A);r_1(A);rl_2(B);r_2(B);rl_3(C);r_3(C);rl_1(B);r_1(B);rl_2(C);r_2(C);rl_3(A);r_3(A);u_3(A);wl_1(A);w_1(A);u_1(A);u_1(B);wl_2(B);w_2(B);u_2(C);wl_3(C);w_3(C)$
+
+Acá no pude conceder el *update lock* en el momento previo a la lectura del ítem a ninguna de las que luego lo iba a escribir, ya que de haberlo hecho habría tenido que retrasar la ejecución de las otras transacciones que querían leer el mismo ítem antes de que se produzca la escritura.
+
+## Ejercicio 3.11
+
+> Dadas las siguientes transacciones: $\\ T_1 = l_1(A); r_1(A); l_1(B); w_1(B); u_1(A); u_1(B) \\ T_2 = l_2(C); r_2(C); l_2(A); w_2(A); u_2(C); u_2(A) \\ T_3 = l_3(B); r_3(B); l_3(C); w_3(C); u_3(B); u_3(C) \\ T_4 = l_4(D); r_4(D); l_4(A); w_4(A); u_4(D); u_4(A) \\$ Se pide:
+
+### (a) Transformar las mismas a un modelo de locks ternario
+
+### (b) Realizar un entrelazado tal que se produzca un *deadlock* y todas las transacciones queden esperando
+
+### (c) Realizar el grafo *wait-for*
+
+### (d) Describir que ocurre en el esquema anterior si se utiliza prevención de *deadlocks* con
+
+#### Un esquema *Wait-Die*
+
+#### Un esquema *Wound-Wait*
+
 [1] [A Critique of ANSI SQL Isolation Levels](https://arxiv.org/pdf/cs/0701157)
+
+[2] [Molina, Ullman, Widom Database systems: The Complete Book]
