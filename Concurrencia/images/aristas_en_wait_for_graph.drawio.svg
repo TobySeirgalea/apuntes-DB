@@ -1,0 +1,159 @@
+<svg host="65bd71144e" xmlns="http://www.w3.org/2000/svg" style="background: transparent; background-color: transparent; color-scheme: light;" xmlns:xlink="http://www.w3.org/1999/xlink" version="1.1" width="273px" height="143px" viewBox="0 0 273 143" id="ge-svg-UebHbzatqKdG7pK-3vgo" content="&lt;mxfile&gt;&lt;diagram id=&quot;2CiDQU7zLlPrP_WQBjVJ&quot; name=&quot;Page-1&quot;&gt;7VhNU9swEP01OcL4I7HJEQdoD+1MO2GmtDdhb2wR2TKyTJL++q5sKbacBEKHMMO0l2T3SauPfW9XgZE/y9efBCmzrzwBNvKcZD3yr0ae5wVj/FTApgUCP2iBVNCkhdwOmNPfoEFHozVNoLImSs6ZpKUNxrwoIJYWRoTgK3vagjN715KksAPMY8J20R80kVmLXkycDv8MNM3Mzq6jR3JiJmugykjCVz3Ivx75M8G5bK18PQOmcmfy0sbdHBjdHkxAIY8JmN7CfPlrc5XxxzD/vlzVN3fszG9XgWQnC92yGqp4LWJ4Zi0zT25M8tSyc+0WvMCvKJM5Q89FE9ZU3vXsn2g75xPtXSkFOcbZGKeQYnPXd3pRyu3CGs/EaeUQkYJ85grelhfUM/AccA2ME8CIpE92iohWVrqd1yUfDZ3/xuX3D0qbnsPIPbA27HbkBQzPElX1PZqpMqnBML4H6/2SREBl5OwYnVW9kjGiZCSGDJUOwlb/s1Jwe3fX0tmngh67jGEVKlJXGZUwL0kjjxX2AZtoUpVtaS7oGvAIUZOGiMTLVPC6SGaccdFJRMJazk2xKPJSQRKKBxnMq/pzFpSxwXh74CcQuGDvDrv0Zr0CNoW96ordQNuWpn3d0byx82pBoKs1cYQ+SlJYiQ8ea9UzogUv5FlL/yVOcJ1y3dzajHfy2RHawyGhdWiz63vqz/uvv6P050/fXH/HvRXjw09DR4pKnp39feRUUvAlDPK1J4WE0bRAN8YdAfFIZZPi63ypB3KaJGrrqCFSkdtr90+E1fpY1ygBQdRLx5p+Htei4mhd/hVJ/i5Jrjuxu4QXnk8sntzp+NU8HUdM8IGJucXCAtX5eLwErKdTUhQOCsm3C8l3whMRFB5DELaTUpl4b7aJBHYn9VPlpd7Wpdc1je0br6ikXLHAYCF75HwZDG9JMnSKNoGH2Ww3AEExMYp3fQZJ9IrTvSS/VSf0Bi9xOLY7oTM9EYEX/wyBZ+/K4NgJbAZD70QMTj9wj3yzDhgMGqA3/CXx+hcK3e5P2Gas938A//oP&lt;/diagram&gt;&lt;/mxfile&gt;">
+    <style type="text/css">
+        @supports (color: light-dark(#000, #fff)) { #ge-svg-UebHbzatqKdG7pK-3vgo { --ge-adaptive-fg: light-dark(#000000, var(--ge-light-color, #ffffff)); } }
+    </style>
+    <defs/>
+    <g>
+        <g data-cell-id="0">
+            <g data-cell-id="1">
+                <g data-cell-id="9TeSkZyDhoq7mQkwuFXl-3">
+                    <g transform="translate(0.5,0.5)">
+                        <path d="M 82 71 L 155.63 71" fill="none" stroke="#000000" stroke-miterlimit="10" pointer-events="stroke" style="stroke: var(--ge-adaptive-fg, #000000);"/>
+                        <path d="M 160.88 71 L 153.88 74.5 L 155.63 71 L 153.88 67.5 Z" fill="#000000" stroke="#000000" stroke-miterlimit="10" pointer-events="all" style="fill: var(--ge-adaptive-fg, #000000); stroke: var(--ge-adaptive-fg, #000000);"/>
+                    </g>
+                </g>
+                <g data-cell-id="9TeSkZyDhoq7mQkwuFXl-1">
+                    <g transform="translate(0.5,0.5)">
+                        <ellipse cx="57" cy="71" rx="25" ry="25" fill="none" stroke="#000000" pointer-events="all" style="stroke: var(--ge-adaptive-fg, #000000);"/>
+                    </g>
+                    <g>
+                        <g>
+                            <switch>
+                                <foreignObject style="overflow: visible; text-align: left;" pointer-events="none" width="100%" height="100%" requiredFeatures="http://www.w3.org/TR/SVG11/feature#Extensibility">
+                                    <div xmlns="http://www.w3.org/1999/xhtml" style="display: flex; align-items: unsafe center; justify-content: unsafe center; width: 48px; height: 1px; padding-top: 71px; margin-left: 33px;">
+                                        <div style="box-sizing: border-box; font-size: 0; text-align: center; color: #000000; ">
+                                            <div style="display: inline-block; font-size: 12px; font-family: Helvetica; color: var(--ge-adaptive-fg, #000000); line-height: 1.2; pointer-events: all; white-space: normal; word-wrap: normal; ">
+                                                T
+                                                <sub>
+                                                    i
+                                                </sub>
+                                            </div>
+                                        </div>
+                                    </div>
+                                </foreignObject>
+                                <text x="57" y="75" fill="#000000" font-family="Helvetica" font-size="12px" text-anchor="middle" style="fill: var(--ge-adaptive-fg, #000000);">
+                                    Ti
+                                </text>
+                            </switch>
+                        </g>
+                    </g>
+                </g>
+                <g data-cell-id="9TeSkZyDhoq7mQkwuFXl-2">
+                    <g transform="translate(0.5,0.5)">
+                        <ellipse cx="187" cy="71" rx="25" ry="25" fill="none" stroke="#000000" pointer-events="all" style="stroke: var(--ge-adaptive-fg, #000000);"/>
+                    </g>
+                    <g>
+                        <g>
+                            <switch>
+                                <foreignObject style="overflow: visible; text-align: left;" pointer-events="none" width="100%" height="100%" requiredFeatures="http://www.w3.org/TR/SVG11/feature#Extensibility">
+                                    <div xmlns="http://www.w3.org/1999/xhtml" style="display: flex; align-items: unsafe center; justify-content: unsafe center; width: 48px; height: 1px; padding-top: 71px; margin-left: 163px;">
+                                        <div style="box-sizing: border-box; font-size: 0; text-align: center; color: #000000; ">
+                                            <div style="display: inline-block; font-size: 12px; font-family: Helvetica; color: var(--ge-adaptive-fg, #000000); line-height: 1.2; pointer-events: all; white-space: normal; word-wrap: normal; ">
+                                                T
+                                                <span style="font-size: 10px;">
+                                                    <sub>
+                                                        j
+                                                    </sub>
+                                                </span>
+                                            </div>
+                                        </div>
+                                    </div>
+                                </foreignObject>
+                                <text x="187" y="75" fill="#000000" font-family="Helvetica" font-size="12px" text-anchor="middle" style="fill: var(--ge-adaptive-fg, #000000);">
+                                    Tj
+                                </text>
+                            </switch>
+                        </g>
+                    </g>
+                </g>
+                <g data-cell-id="9TeSkZyDhoq7mQkwuFXl-4">
+                    <g>
+                        <rect x="-0.5" y="0" width="115" height="30" fill="none" stroke="none" pointer-events="all"/>
+                    </g>
+                    <g>
+                        <g>
+                            <switch>
+                                <foreignObject style="overflow: visible; text-align: left;" pointer-events="none" width="100%" height="100%" requiredFeatures="http://www.w3.org/TR/SVG11/feature#Extensibility">
+                                    <div xmlns="http://www.w3.org/1999/xhtml" style="display: flex; align-items: unsafe center; justify-content: unsafe center; width: 113px; height: 1px; padding-top: 15px; margin-left: 1px;">
+                                        <div style="box-sizing: border-box; font-size: 0; text-align: center; color: #000000; ">
+                                            <div style="display: inline-block; font-size: 12px; font-family: Helvetica; color: var(--ge-adaptive-fg, #000000); line-height: 1.2; pointer-events: all; white-space: normal; word-wrap: normal; ">
+                                                Espera el recurso A
+                                            </div>
+                                        </div>
+                                    </div>
+                                </foreignObject>
+                                <text x="57" y="19" fill="#000000" font-family="Helvetica" font-size="12px" text-anchor="middle" style="fill: var(--ge-adaptive-fg, #000000);">
+                                    Espera el recurso A
+                                </text>
+                            </switch>
+                        </g>
+                    </g>
+                </g>
+                <g data-cell-id="9TeSkZyDhoq7mQkwuFXl-6">
+                    <g>
+                        <rect x="102" y="113" width="170" height="30" fill="none" stroke="none" pointer-events="all"/>
+                    </g>
+                    <g>
+                        <g>
+                            <switch>
+                                <foreignObject style="overflow: visible; text-align: left;" pointer-events="none" width="100%" height="100%" requiredFeatures="http://www.w3.org/TR/SVG11/feature#Extensibility">
+                                    <div xmlns="http://www.w3.org/1999/xhtml" style="display: flex; align-items: unsafe center; justify-content: unsafe center; width: 168px; height: 1px; padding-top: 128px; margin-left: 103px;">
+                                        <div style="box-sizing: border-box; font-size: 0; text-align: center; color: #000000; ">
+                                            <div style="display: inline-block; font-size: 12px; font-family: Helvetica; color: var(--ge-adaptive-fg, #000000); line-height: 1.2; pointer-events: all; white-space: normal; word-wrap: normal; ">
+                                                Tiene lockeado el recurso A
+                                            </div>
+                                        </div>
+                                    </div>
+                                </foreignObject>
+                                <text x="187" y="132" fill="#000000" font-family="Helvetica" font-size="12px" text-anchor="middle" style="fill: var(--ge-adaptive-fg, #000000);">
+                                    Tiene lockeado el recurso A
+                                </text>
+                            </switch>
+                        </g>
+                    </g>
+                </g>
+                <g data-cell-id="9TeSkZyDhoq7mQkwuFXl-7">
+                    <g transform="translate(0.5,0.5)">
+                        <path d="M 66 15 L 61 15 Q 56 15 56 25 L 56 32.5 Q 56 40 51 40 L 48.5 40 Q 46 40 51 40 L 53.5 40 Q 56 40 56 50 L 56 57.5 Q 56 65 61 65 L 66 65" fill="none" stroke="#000000" stroke-miterlimit="10" transform="rotate(90,56,40)" pointer-events="all" style="stroke: var(--ge-adaptive-fg, #000000);"/>
+                    </g>
+                </g>
+                <g data-cell-id="9TeSkZyDhoq7mQkwuFXl-8">
+                    <g transform="translate(0.5,0.5)">
+                        <path d="M 198 78 L 193 78 Q 188 78 188 88 L 188 95.5 Q 188 103 183 103 L 180.5 103 Q 178 103 183 103 L 185.5 103 Q 188 103 188 113 L 188 120.5 Q 188 128 193 128 L 198 128" fill="none" stroke="#000000" stroke-miterlimit="10" transform="rotate(-90,188,103)" pointer-events="all" style="stroke: var(--ge-adaptive-fg, #000000);"/>
+                    </g>
+                </g>
+                <g data-cell-id="9TeSkZyDhoq7mQkwuFXl-9">
+                    <g>
+                        <rect x="92" y="50" width="60" height="30" fill="none" stroke="none" pointer-events="all"/>
+                    </g>
+                    <g>
+                        <g>
+                            <switch>
+                                <foreignObject style="overflow: visible; text-align: left;" pointer-events="none" width="100%" height="100%" requiredFeatures="http://www.w3.org/TR/SVG11/feature#Extensibility">
+                                    <div xmlns="http://www.w3.org/1999/xhtml" style="display: flex; align-items: unsafe center; justify-content: unsafe center; width: 58px; height: 1px; padding-top: 65px; margin-left: 93px;">
+                                        <div style="box-sizing: border-box; font-size: 0; text-align: center; color: #000000; ">
+                                            <div style="display: inline-block; font-size: 12px; font-family: Helvetica; color: var(--ge-adaptive-fg, #000000); line-height: 1.2; pointer-events: all; white-space: normal; word-wrap: normal; ">
+                                                A
+                                            </div>
+                                        </div>
+                                    </div>
+                                </foreignObject>
+                                <text x="122" y="69" fill="#000000" font-family="Helvetica" font-size="12px" text-anchor="middle" style="fill: var(--ge-adaptive-fg, #000000);">
+                                    A
+                                </text>
+                            </switch>
+                        </g>
+                    </g>
+                </g>
+            </g>
+        </g>
+    </g>
+    <switch>
+        <g requiredFeatures="http://www.w3.org/TR/SVG11/feature#Extensibility"/>
+        <a transform="translate(0,-5)" xlink:href="https://www.drawio.com/doc/faq/svg-export-text-problems" target="_blank">
+            <text text-anchor="middle" font-size="10px" x="50%" y="100%">
+                Text is not SVG - cannot display
+            </text>
+        </a>
+    </switch>
+</svg>

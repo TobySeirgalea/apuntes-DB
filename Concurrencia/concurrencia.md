@@ -175,18 +175,34 @@ Transacción es 2PL $\iff$ todos los *locks* preceden a la primer operación de 
 
 El dos fases viene de: fase de adquisición de locks (*growing phase*) y fase de liberación (*shrinking phase*).
 
+>[!NOTE]
+> Si se permite *lock conversion*, entonces el *lock's upgrading* (pasar de *read lock* a *write lock*) debe realizarse en la fase de *growing*, mientras que el *downgranding* (pasar de *write lock* a *read lock*) debe realizarse en la fase de *shrinking*[3] (pag. 782).
+
 **Teorema serializabilidad con 2PL**
 Si todas las transacciones son 2PL, entonces toda historia legal sobre ellas es **SR**, incluso Gen(2PL) $\subset$ OCSR.
 
+>[!NOTE]
+>Todos los *schedules* que permite **2PL** son serializables, pero no permite a todos los que son serializables, i.e. correcto pero no completo.[3]
+
 #### C2PL (*conservative two phase locking*)
 
-Transacción es C2PL $\iff$ adquiere todos los locks que necesitará al inicio, es decir antes de su primer escritura o lectura.
+Transacción es C2PL $\iff$ adquiere todos los locks que necesitará al inicio, es decir antes de su primer escritura o lectura, si no los puede adquirir, entonces toda la transacción espera hasta que se pueda.
+
+>[!NOTE]
+> Es protocolo *deadlock free*.[3]
+
+>[!NOTE]
+> Difícil de aplicar porque requiere conocer de antemano todos los items que una transacción lee y escribe.[3]
 
 #### 2PLE o S2PL (*strict two phase locking*)
 
 Transacción es 2PLE $\iff$ es 2PL y no libera ninguno de sus locks de escritura hasta después de realizar commit o abort.
 
-2PLE garantiza que historia es **ST**.
+>[!NOTE]
+>2PLE garantiza que historia es **ST**.[3]
+
+>[!NOTE]
+>No es *deadlock free*.[3]
 
 >[!IMPORTANT]
 > 2PLE garantiza que historia es **ST**: ¿significa que toda historia compuesta por transacciones 2PLE es ST?
@@ -194,20 +210,43 @@ Transacción es 2PLE $\iff$ es 2PL y no libera ninguno de sus locks de escritura
 >[!IMPORTANT]
 > Necesariamente debe liberarlos después que los de lectura?
 
+
 #### 2PLR o SS2PL (*rigurous two phase locking*)
 
 Transacción es 2PLR $\iff$ es 2PL y no libera ninguno de sus locks de escritura o lectura hasta después del commit o abort.
+
+>[!NOTE]
+> También garantiza que historia es **ST**.[3]
 
 ### Deadlocks
 
 *Estado en el cual cada miembro de un grupo de transacciones está esperando que algún otro miembro libere un lock*.
 
+Dos enfoques:
+
+- [Deadlock detection](#detección-de-deadlocks-wait-for-graph).
+- [Deadlock prevention](#prevención-de-deadlocks).
+
+¿Cuándo conviene cada uno?[3]
+
+- Si sabés que hay poca interferencia o que es poco probable → deadlock detection.
+- Si hay mucha interferencia o es muy probable → deadlock prevention.
+
 #### Detección de *deadlocks*: Wait-for graph
 
 - Un nodo por cada transacción que tiene un *lock* o espera por uno.
-- Una arista entre $T_i$ y $T_j$ si $T_i$ está esperando que $T_j$ libere un lock sobre un item que $T_i$ necesita bloquear. *Arrancás desde final de $H$ y ponés arista si hay un lock previo sobre mismo item*.
+- Una arista entre $T_i$ y $T_j$ si $T_i$ está esperando que $T_j$ libere un lock sobre un item que $T_i$ necesita bloquear. *Arrancás desde final de $H$ y ponés arista si hay un lock previo sobre mismo item*. ![Aristas en wait for graph](./images/aristas_en_wait_for_graph.drawio.svg)
+- Una vez $T_j$ libera el recurso, borramos la arista.
 
-Ciclos $\iff$ hay deadlock.
+Ciclos $\iff$ estamos en estado de *deadlock*.
+
+##### ¿Cada cuanto lo chequeamos?
+
+Tradeoff entre evitar excesivo *overhead* y detectar *deadlocks* a tiempo.
+
+##### Si hay *deadlock*... ¿a quién rajamos?
+
+Priorizar no sacar a la que lleva más progreso.
 
 #### Prevención de *deadlocks*
 
@@ -220,19 +259,25 @@ Si $T_i$ quiere realizar un lock sobre un item y no puede porque $T_j$ ya tiene 
 
 - ***Wait-die***:
   - Si $T_i$ es más viejo que $T_j \xrightarrow T_i$ espera.
-  - Si $T_i$ es más joven que $T_j \xrightarrow T_i$ aborta y reinicia más tarde con mismo timestamp.
+  - Si $T_i$ es más joven que $T_j \xrightarrow T_i$ aborta y reinicia más tarde <ins>con mismo *timestamp*</ins>.
 - ***Wound-wait***:
-  - Si $T_i$ es más viejo que $T_j \xrightarrow T_j$ aborta y reinicia más tarde con el mismo timestamp.
+  - Si $T_i$ es más viejo que $T_j \xrightarrow T_j$ aborta y reinicia más tarde <ins>con el mismo *timestamp*</ins>.
   - Si $T_i$ más joven que $T_j \xrightarrow T_i$ espera.
+
+>[!NOTE]
+> Es reiniciar con el mismo timestamp lo que reduce cada vez más las chances de que vuelva a ser abortada, impidiendo **starvation**.[3]
 
 >[!NOTE]
 > $TS(T_i) \lt TS(T_j) \iff$ $T_i$ es más viejo que $T_j$.
 
+>[!NOTE]
+> *Wait-Die* y *Wound-Wait* son *deadlock free*.[3]
+
 ##### Otros esquemas
 
 - Timeout.
-- No waiting (NW).
-- Cautious waiting (CW).
+- No waiting (NW): Si no puede obtener lock que necesita → la abortan y que se reinicie después de un periodo de tiempo. Genera muchos *aborts*.
+- Cautious waiting (CW): Querés un ítem que tiene otra transacción $T ^\prime$, si esa no está esperando un ítem que tiene otra, entonces te dejo esperar, sino *abort* y intentá más tarde. Es *deadlock free*.
 
 ## Ejercicio 1.2
 
@@ -984,13 +1029,95 @@ Acá no pude conceder el *update lock* en el momento previo a la lectura del ít
 
 ### (a) Transformar las mismas a un modelo de locks ternario
 
+$T_1 = rl_1(A); r_1(A); wl_1(B); w_1(B); u_1(A); u_1(B)$
+
+$T_2 = rl_2(C); r_2(C); wl_2(A); w_2(A); u_2(C); u_2(A)$
+
+$T_3 = rl_3(B); r_3(B); wl_3(C); w_3(C); u_3(B); u_3(C)$
+
+$T_4 = rl_4(D); r_4(D); wl_4(A); w_4(A); u_4(D); u_4(A)$
+
 ### (b) Realizar un entrelazado tal que se produzca un *deadlock* y todas las transacciones queden esperando
 
+- Si $T_2$ llega a adquirir el lock de lectura de $C$ y no lo libera antes de que se ejecute $wl_3(C)$, $T_3$ se queda trabada.
+- Si $T_3$ se queda trabada pero ya adquirió el lock de lectura de $B$ antes de que $T_1$ ejecute $wl_1(B)$, entonces $T_1$ se queda trabada.
+- Si $T_1$ adquirió el lock de lectura sobre $A$ antes de que $T_2$ llegue a ejecutar el $wl_2(A)$, entonces $T_2$ se queda trabada.
+- Si $T_1$ adquirió el lock de lectura sobre $A$ antes de que $T_4$ ejecute $wl_4(A)$, entonces $T_4$ se queda trabada.
+
+$H=rl_1(A); r_1(A);rl_2(C); r_2(C);rl_3(B); r_3(B);rl_4(D); r_4(D);wl_1(B)~denegado~;wl_2(A)~denegado~;wl_3(C)~denegado~;wl_4(A)~denegado~$
+
 ### (c) Realizar el grafo *wait-for*
+
+- Un nodo por cada transacción con un que tiene lock o espera por uno.
+- Una arista de $T_i$ a $T_j$ si $T_j$ necesita un elemento que $T_i$ lockeó antes.
+
+Construcción del grafo:
+
+- Como $T_1$ tiene lock sobre $A$ y lo necesitan tanto $T_2$ como $T_4$, entonces pongo aristas $T_1 \xrightarrow{A} T_2$ y $T_1 \xrightarrow{A} T_4$.
+- Como $T_2$ tiene lock sobre $C$ y lo necesita $T_3$ pongo arista $T_2 \xrightarrow{C} T_3$.
+- $T_3$ tiene lock sobre $B$ y lo necesita $T_1$, entonces pongo arista $T_3 \xrightarrow{B} T_1$.
+- $T_4$ tiene lock sobre $D$, pero ninguna lo necesita, entonces no pongo arista.
+
+![Wait for graph](./images/ej3.9.drawio.svg)
+
+Como en el *wait for graph* tenemos un ciclo ($T_1,T_2,T_3$) entonces hay *deadlock*, lo cual coincide con lo observado en la $H$ propuesta.
 
 ### (d) Describir que ocurre en el esquema anterior si se utiliza prevención de *deadlocks* con
 
 #### Un esquema *Wait-Die*
+
+En el esquema ***Wait-Die***:
+
+- Si la que quiere el recurso es más vieja que la que lo tiene, entonces la dejamos esperarlo.
+- Si la que quiere el recurso es más joven que la que lo tiene, entonces aborta y la reiniciamos más tarde con el mismo *timestamp*.
+
+En nuestro ejemplo sería:
+
+$H=rl_1(A);r_1(A);rl_2(C); r_2(C);rl_3(B); r_3(B);rl_4(D); r_4(D);¿wl_1(B)?$
+
+Acá $T_1$ quiere un recurso que tiene $T_3$ que es más joven, entonces la dejamos esperar.
+
+Continuamos...
+
+$H=rl_1(A); r_1(A);\cancel{rl_2(C)};\cancel{r_2(C)};rl_3(B); r_3(B);rl_4(D); r_4(D);¿wl_2(A)?;$ Como $T_2$ es más joven que $T_1$ la abortamos y la reiniciamos con el mismo *timestamp*.
+
+$\dots;wl_3(C); w_3(C);¿wl_4(A)?;$ $T_4$ quiere recurso que tiene más vieja, entonces lo abortamos y que reinicie con el mismo timestamp.
+
+Reinicio $T_2$:
+
+$\dots;wl_3(C); w_3(C);¿rl_2(C)?$ $T_2$ quiere recurso que tiene una más joven, ya que $T_2$ tiene su *timestamp* original, entonces la dejamos esperar.
+
+Vuelve a intentar $T_1$ pero como el recurso $C$ lo tiene una más joven la dejamos esperar
+
+$\dots;wl_3(C); w_3(C);u_3(B); u_3(C)$ Terminó $T_3$
+
+Reinicio $T_4$:
+
+$\dots;wl_3(C);w_3(C);u_3(B);u_3(C);rl_4(D);r_4(D);$
+
+Vuelve a intentar $T_1$ que ahora consigue avanzar
+
+$\dots;wl_3(C);w_3(C);u_3(B);u_3(C);rl_4(D);r_4(D);rl_1(A);r_1(A)$
+
+Vuelve a intentar $T_2$ que también estaba esperando $C$ pero como ya terminó $T_3$ ahora la puede obtener.
+
+$\dots;wl_3(C);w_3(C);u_3(B);u_3(C);rl_4(D);r_4(D);rl_1(A);r_1(A);rl_2(C);r_2(C);¿wl_4(A)?$ $T_4$ quiere $A$ que lo tiene $T_1$ que es más vieja, por lo que $T_4$ aborta y la reinicio con el mismo *timestamp*.
+
+$\dots;wl_1(B);w_1(B);¿wl_2(A)?$ $T_2$ quiere recurso que tiene más vieja, entonces abortamos $T_2$.
+
+Reinicia $T_4$
+
+$\dots;wl_1(B);w_1(B);rl_4(D);r_4(D);u_1(A);u_1(B)$ Terminó $T_1$
+
+Reinicia $T_2$
+
+$\dots;rl_(C);r_2(C);wl_4(A);w_4(A);¿wl_2(A)?$ Como $T_2$ es más vieja que $T_4$, por reiniciar con el mismo *timestamp*, la dejamos esperar.
+
+Continúa $T_4$
+
+$\dots;rl_(C);r_2(C);wl_4(A);w_4(A);u_4(D);u_4(A)$ Terminó $T_4$
+
+$\dots;rl_(C);r_2(C);wl_4(A);w_4(A);u_4(D);u_4(A);wl_2(A);w_2(A);u_2(C);u_2(A)$ Termina $T_2$
 
 #### Un esquema *Wound-Wait*
 
