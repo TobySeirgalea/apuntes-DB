@@ -1121,6 +1121,163 @@ $\dots;rl_(C);r_2(C);wl_4(A);w_4(A);u_4(D);u_4(A);wl_2(A);w_2(A);u_2(C);u_2(A)$ 
 
 #### Un esquema *Wound-Wait*
 
+Una transacción $i$ quiere realizar un lock sobre un recurso que tiene otra transacción $j$.
+
+- Si la que lo quiere es más vieja que la que lo tiene $\xrightarrow$ abortamos a la que lo tiene y que reinicie más tarde con misma *timestamp*.
+- Si la que lo quiere es más joven que la que lo tiene, la dejamos esperarlo.
+
+En nuestro ejemplo sería:
+
+$H=rl_1(A);r_1(A);rl_2(C); r_2(C);rl_3(B); r_3(B);rl_4(D); r_4(D);¿wl_1(B)?$ $T_1$ quiere un recurso que tiene $T_3$ que es más joven $\therefore$ abortamos $T_3$, que reinicia más tarde pero con su *timestamp* actual. $T_1$ adquiere el recurso.
+
+$H=rl_1(A);r_1(A);rl_2(C); r_2(C);\cancel{rl_3(B)};\cancel{r_3(B)};rl_4(D); r_4(D);wl_1(B);w_1(B);¿rl_2(A)?$ $T_2$ quiere un recurso que tiene una más vieja, entonces la dejamos esperarlo sin resetearla.
+
+$H=rl_1(A);r_1(A);rl_2(C); r_2(C);\cancel{rl_3(B)};\cancel{r_3(B)};rl_4(D); r_4(D);wl_1(B);w_1(B);¿rl_4(A)?$ De nuevo, por ser más joven la dejamos esperarlo sin reiniciarla.
+
+Ahora reiniciamos $T_3$ para esta nueva vuelta. Continuamos con $T_1$
+
+$H=rl_1(A);r_1(A);rl_2(C); r_2(C);\cancel{rl_3(B)};\cancel{r_3(B)};rl_4(D); r_4(D);wl_1(B);w_1(B);u_1(A);u_1(B)$ Terminó $T_1$.
+
+$H=rl_1(A);r_1(A);rl_2(C); r_2(C);\cancel{rl_3(B)};\cancel{r_3(B)};rl_4(D); r_4(D);wl_1(B);w_1(B);u_1(A);u_1(B);wl_2(A);w_2(A);rl_3(B);r_3(B);¿wl_4(A)?$ $T_4$ quiere recurso que tiene $T_2$ que por haber reiniciado con *timestamp* inicial es más vieja, entonces la dejamos esperar sin reiniciarla.
+
+$H=rl_1(A);r_1(A);rl_2(C); r_2(C);\cancel{rl_3(B)};\cancel{r_3(B)};rl_4(D); r_4(D);wl_1(B);w_1(B);u_1(A);u_1(B);wl_2(A);w_2(A);rl_3(B);r_3(B);u_2(C);u_2(A)$ Terminó $T_2$.
+
+Quedan solo $T_3$ y $T_4$
+
+$H=rl_1(A);r_1(A);rl_2(C); r_2(C);\cancel{rl_3(B)};\cancel{r_3(B)};rl_4(D); r_4(D);wl_1(B);w_1(B);u_1(A);u_1(B);wl_2(A);w_2(A);rl_3(B);r_3(B);u_2(C);u_2(A);wl_3(C);w_3(C);wl_4(A);w_4(A);u_3(B);u_3(C);u_4(D);u_4(A)$. Terminaron $T_3$ y $T_4$.
+
+## Ejercicio 3.12
+
+> Para cada una de las historias siguientes:
+> $\\ H_1=r_1(A);r_2(B);w_1(C);r_3(D);r_4(E);w_3(B);w_2(C);w_4(A);w_1(D);\\ H_2=r_1(A);r_2(B);r_3(C);w_1(B);w_2(C);w_3(A);\\ H_3=r_1(A);r_2(B);r_3(C);w_1(B);w_2(C);w_3(A);$ Se pide:
+
+### (a) Ubicar un *read lock* inmediatamente antes de cada acción de lectura, un *write lock* inmediatamente antes de cada acción de escritura y *unlocks* de modo que las transacciones cumplan con **2PL**
+
+$H_1=rl_1(A);r_1(A);rl_2(B);r_2(B);wl_1(C);w_1(C);rl_3(D);r_3(D);rl_4(E);r_4(E);wl_3(B);w_3(B);wl_2(C);w_2(C);wl_4(A);w_4(A);wl_1(D);w_1(D);u_1(A);u_2(B);u_1(C);u_3(D);u_4(E);u_3(B);u_2(C);u_4(A);u_1(D);$
+
+$H_2=rl_1(A);r_1(A);rl_2(B);r_2(B);rl_3(C);r_3(C);wl_1(B);w_1(B);wl_2(C);w_2(C);wl_3(A);w_3(A);u_1(A);u_2(B);u_3(C);u_1(B);u_2(C);u_3(A)$
+
+$H_3=rl_1(A);r_1(A);rl_2(B);r_2(B);rl_3(C);r_3(C);wl_1(B);w_1(B);wl_2(C);w_2(C);wl_3(A);w_3(A);u_1(A);u_2(B);u_3(C);u_2(B);u_2(C);u_3(A)$
+
+### (b) En base a lo anterior decir qué acciones son denegadas y cuando ocurre un *deadlock*
+
+**Para $H_1$**:
+
+| t  |Operación   | Observación                                      |
+|:--:|:----------:|:------------------------------------------------:|
+|$0$ |$rl_1(A)$   |                                                  |
+|$1$ |$r_1(A)$    |                                                  |
+|$2$ |$rl_2(B)$   |                                                  |
+|$3$ |$r_2(B)$    |                                                  |
+|$4$ |$wl_1(C)$   |                                                  |
+|$5$ |$w_1(C)$    |                                                  |
+|$6$ |$rl_3(D)$   |                                                  |
+|$7$ |$r_3(D)$    |                                                  |
+|$8$ |$rl_4(E)$   |                                                  |
+|$9$ |$r_4(E)$    |                                                  |
+|$10$|$wl_3(B)$   |Denegado, $T_2$ tiene lock de lectura sobre $B$.  |
+|$11$|$w_3(B)$    |Denegado                                          |
+|$12$|$wl_2(C)$   |Denegado, $T_1$ tiene lock de escritura sobre $C$.|
+|$13$|$w_2(C)$    |Denegado                                          |
+|$14$|$wl_4(A)$   |Denegado, $T_1$ tiene lock de lectura sobre $A$.  |
+|$15$|$w_4(A)$    |Denegado                                          |
+|$16$|$wl_1(D)$   |Denegado, $T_3$ tiene lock de lectura sobre $D$.  |
+|$17$|$w_1(D)$    |En estado de *deadlock*                           |
+|$18$|$u_1(A)$    |En estado de *deadlock*                           |
+|$19$|$u_2(B)$    |En estado de *deadlock*                           |
+|$20$|$u_1(C)$    |En estado de *deadlock*                           |
+|$21$|$u_3(D)$    |En estado de *deadlock*                           |
+|$22$|$u_4(E)$    |En estado de *deadlock*                           |
+|$23$|$u_3(B)$    |En estado de *deadlock*                           |
+|$24$|$u_2(C)$    |En estado de *deadlock*                           |
+|$25$|$u_4(A)$    |En estado de *deadlock*                           |
+|$26$|$u_1(D)$    |En estado de *deadlock*                           |
+
+- $wl_3(B)$ no se puede realizar porque ya $T_2$ tiene un lock de lectura. $T_3$ tiene lock de lectura sobre $D$.
+- $wl_2(C)$ no se puede realizar porque ya $T_1$ tiene un lock de escritura. $T_2$ tiene lock de lectura sobre $B$.
+- $wl_4(A)$ no se puede realizar porque ya $T_1$ tiene un lock de escritura. $T_4$ tiene lock de lectura sobre $E$.
+- $wl_1(D)$ no se puede realizar porque ya $T_3$ tiene un lock de lectura. $T_1$ tiene lock de lectura sobre $A$ y de escritura sobre $C$.
+
+$T_2$ bloquea a $T_3$ que bloquea a $T_1$ que bloquea a $T_2$ y a $T_4$. $\therefore$ *deadlock*.
+
+**Para $H_2$**:
+
+| t  |Operación   | Observación                                      |
+|:--:|:----------:|:------------------------------------------------:|
+|$0$ |$rl_1(A)$   |                                                  |
+|$1$ |$r_1(A)$    |                                                  |
+|$2$ |$rl_2(B)$   |                                                  |
+|$3$ |$r_2(B)$    |                                                  |
+|$4$ |$rl_1(C)$   |                                                  |
+|$5$ |$r_1(C)$    |                                                  |
+|$6$ |$wl_1(B)$   |Denegado, $T_2$ tiene lock de lectura sobre $B$.  |
+|$7$ |$w_1(B)$    |Denegado                                          |
+|$8$ |$wl_2(C)$   |Denegado, $T_1$ tiene lock de lectura sobre $C$.  |
+|$9$ |$w_2(C)$    |Denegado                                          |
+|$10$|$wl_3(A)$   |Denegado, $T_1$ tiene lock de lectura sobre $A$.  |
+|$11$|$w_3(A)$    |Denegado                                          |
+|$12$|$u_1(A)$    |En estado de *deadlock*                           |
+|$13$|$u_2(B)$    |En estado de *deadlock*                           |
+|$14$|$u_3(C)$    |En estado de *deadlock*                           |
+|$15$|$u_1(B)$    |En estado de *deadlock*                           |
+|$16$|$u_2(C)$    |En estado de *deadlock*                           |
+|$17$|$u_3(A)$    |En estado de *deadlock*                           |
+
+- $wl_1(B)$ no se puede realizar porque ya $T_2$ tiene un lock de lectura. $T_1$ tiene lock de lectura sobre $A$.
+- $wl_2(C)$ no se puede realizar porque ya $T_3$ tiene un lock de lectura. $T_2$ tiene lock de lectura sobre $B$.
+- $wl_3(A)$ no se puede realizar porque ya $T_1$ tiene un lock de lectura. $T_3$ tiene lock de lectura sobre $C$.
+
+$T_2$ bloquea a $T_1$ que bloquea a $T_3$ que bloquea a $T_2$. $\therefore$ *deadlock*.
+
+**Para $H_3$**:
+
+| t  |Operación   | Observación                                      |
+|:--:|:----------:|:------------------------------------------------:|
+|$0$ |$rl_1(A)$   |                                                  |
+|$1$ |$r_1(A)$    |                                                  |
+|$2$ |$rl_2(B)$   |                                                  |
+|$3$ |$r_2(B)$    |                                                  |
+|$4$ |$rl_3(C)$   |                                                  |
+|$5$ |$r_3(C)$    |                                                  |
+|$6$ |$wl_1(B)$   |Denegado, $T_2$ tiene lock de lectura sobre $B$.  |
+|$7$ |$w_1(B)$    |Denegado                                          |
+|$8$ |$wl_2(C)$   |Denegado, $T_3$ tiene lock de lectura sobre $C$.  |
+|$9$ |$w_2(C)$    |Denegado                                          |
+|$10$|$wl_3(A)$   |Denegado, $T_1$ tiene lock de lectura sobre $A$.  |
+|$11$|$w_3(A)$    |Denegado                                          |
+|$12$|$u_1(A)$    |En estado de *deadlock*                           |
+|$13$|$u_2(B)$    |En estado de *deadlock*                           |
+|$14$|$u_3(C)$    |En estado de *deadlock*                           |
+|$15$|$u_1(B)$    |En estado de *deadlock*                           |
+|$16$|$u_2(C)$    |En estado de *deadlock*                           |
+|$17$|$u_3(A)$    |En estado de *deadlock*                           |
+
+- $wl_1(B)$ no se puede realizar porque ya $T_2$ tiene un lock de lectura. $T_1$ tiene lock de lectura sobre $A$.
+- $wl_2(C)$ no se puede realizar porque ya $T_3$ tiene un lock de lectura. $T_2$ tiene lock de lectura sobre $B$.
+- $wl_3(A)$ no se puede realizar porque ya $T_1$ tiene un lock de lectura. $T_3$ tiene lock de lectura sobre $C$.
+
+$T_2$ bloquea a $T_1$ que bloquea a $T_3$ que bloquea a $T_2$. $\therefore$ *deadlock*.
+
+### (c) Dibujar la evolución del grafo *wait-for*
+
+**Para $H_1$**:
+
+![evolución wait for graph para H_1](./images/ej3.11c_h1.drawio.svg)
+
+**Para $H_2$**:
+
+![evolución wait for graph para H_2](./images/ej3.11c_h2.drawio.svg)
+
+**Para $H_3$**:
+
+![evolución wait for graph para H_3](./images/ej3.11c_h3.drawio.svg)
+
+### (d) Asumiendo un orden $T_1,T_2,T_3,T_4$ y un mecanismo de detección de *deadlock* explicar qué ocurre si este mecanismo usa
+
+#### Un esquema *Wait-Die*
+
+#### Un esquema *Wound-Wait*
+
 [1] [A Critique of ANSI SQL Isolation Levels](https://arxiv.org/pdf/cs/0701157)
 
 [2] [Molina, Ullman, Widom Database systems: The Complete Book]
