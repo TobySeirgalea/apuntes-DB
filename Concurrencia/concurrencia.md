@@ -55,7 +55,7 @@ Ocurre cuando se le permite a una transacción leer un item de que ha sido modif
 Patrón: $w_1(X);\dots;r_2(X);\dots;(c_1 or a_1)$ [1]
 
 >[!IMPORTANT]
-> **Consultar**: El hecho de leer de una que aún no ha sido commiteada es *dirty read*, aunque si ella aborte la que leyó también lo haga ¿sigue siendo *dirty read*?
+> **Consultar**: El hecho de leer de una que aún no ha sido commiteada es *dirty read*, aunque no aborte o mi transacción aborte en cascada ¿sigue siendo *dirty read*? RTA: Es un potencial dirty read que si aborta se concreta.
 
 #### *Lost updates*
 
@@ -64,7 +64,7 @@ Lost Update: Ocurre cuando una transacción $T_1$ lee un item y luego $T_2$ lo e
 Patrón: $r_1(x);\dots;w_2(x);\dots;w_1(x);\dots;c_1$ (Lost Update) [1]
 
 >[!IMPORTANT]
->**Consultar**: ¿Es la única forma en que puede ocurrir *lost update*?¿*dirty write* ($w_1(X);\dots;w_2(X)$) es considerado *lost update*? ¿En el patrón da igual si $T_2$ commiteó o no?
+>**Consultar**: ¿Es la única forma en que puede ocurrir *lost update*?¿*dirty write* ($w_1(X);\dots;w_2(X)$) es considerado *lost update*? RTA: Si. ¿En el patrón da igual si $T_2$ commiteó o no? Sí, el valor de $T_2$ lo pisó $T_1$. Necesitaría multiversión.
 
 #### *Phantom reads*
 
@@ -94,9 +94,6 @@ $H$ es **SR** $\iff$ grafo de precedencia no tiene ciclos.
 
 >[!NOTE]
 >¿Cómo obtener ordenes topológicos?: Buscás el nodo sin aristas de entrada, lo sacás con todas sus aristas salientes y lo ponés en una lista. Repetís el proceso hasta que no te queden nodos y lo tenés.
-
->[!IMPORTANT]
-> **CONSULTAR**: Si hay ciclo no es serializable?
 
 ### Esquema lock ternario
 
@@ -132,9 +129,6 @@ Como las <ins>lecturas de un mismo item por parte de múltiples transacciones no
 - Si $T_i$ hace un $rl_i(X)$ o $wl_i(X)$ y luego $T_j$, con $i \neq j$ hace un $wl_j(X)$ en $H$, ponés $T_i \xrightarrow T_j$. *Si pediste lock (lectura o escritura) sobre item y otra lo escribe después, entonces ponés arista*.
 - Si $T_i$ hace un $wl_i(X)$ y luego $T_j$, con $i \neq j$ hace un $rl_j(X)$ en $H$, ponés $T_i \xrightarrow T_j$. *Si escribiste un item y otra lo quiere leer, ponés arista*.
 
->[!IMPORTANT]
-> **CONSULTAR**: Si hay ciclo no es serializable?
-
 #### *Lock upgrading/downgrading*
 
 - **Upgrading lock**: Pasar de lock de lectura compartido a uno exclusivo de escritura.
@@ -162,7 +156,7 @@ Para solucionar el problema del *deadlock por upgrading* agregamos el ***update 
   - ¿Por qué? Porque la idea es que, aunque debamos denegarle el *upgrading* a escritura sobre el ítem a la transacción que tiene el *update lock* porque otras tienen un *read lock* sobre el mismo ítem, eventualmente estas terminarán y podremos permitir que el poseedor de *upgrade lock* promocione a *write lock* y pueda escribir. Si siguiéramos otorgando *read locks* a otras transacciones podríamos generar *starvation* sobre la transacción con el *update lock*.
 
 >[!IMPORTANT]
-> En el *update lock* pueden varios tener locks de lectura no upgradeables a lock de lectura y uno solo tener el upgradeable no? En dicho caso, los que tienen locks de lectura compartidos no upgradeables qué pasa cuando el que tiene el upgradeable quiere convertirlo en lock de escritura? lo liberan automaticamente o el upgradeable debe esperar a que lo hagan ellos manualmente? La matriz permite que si tenes uno de lectura y solicitan el de ul lo reciba por lo que acabarían conviviendo los de lectura con los ul?
+> En el *update lock* pueden varios tener locks de lectura no upgradeables a lock de lectura y uno solo tener el upgradeable no? RTA: Si. En dicho caso, los que tienen locks de lectura compartidos no upgradeables qué pasa cuando el que tiene el upgradeable quiere convertirlo en lock de escritura? lo liberan automaticamente o el upgradeable debe esperar a que lo hagan ellos manualmente? La matriz permite que si tenes uno de lectura y solicitan el de ul lo reciba por lo que acabarían conviviendo los de lectura con los ul? RTA: Sí, puede haber convivencia entre *read locks* y *update lock* sobre un mismo elemento. Lo que no puede pasar es que una vez entregué un *update lock* sobre un ítem, siga entregano *read locks* sobre él. Si el *update lock* debe esperar a que los *read locks* disponibles lo liberen o no es decisión de implementación. En *Wound-Die* y *Wait-Die* se vé.
 
 >[!IMPORTANT]
 > *Locking* por si solo no garantiza <ins>serializabilidad</ins>, se necesitan protocolos para posicionar lock y unlocks.
@@ -208,7 +202,7 @@ Transacción es 2PLE $\iff$ es 2PL y no libera ninguno de sus locks de escritura
 > 2PLE garantiza que historia es **ST**: ¿significa que toda historia compuesta por transacciones 2PLE es ST?
 
 >[!IMPORTANT]
-> Necesariamente debe liberarlos después que los de lectura?
+> Necesariamente debe liberarlos después que los de lectura? RTA: No hay restricción sobre eso.
 
 
 #### 2PLR o SS2PL (*rigurous two phase locking*)
@@ -350,7 +344,7 @@ $H_5=r_1(X);r_4(Y);r_3(X);w_1(X);w_4(Y);w_3(X);c_1;w_3(Y); w_4(Z);c_3;w_4(X);c_4
 - Los que son **NoRC** también los permiten.
 - $\therefore H_1$ y $H_4$ son las únicas que son solo **RC** y no hay ninguna **NoRC**. Así que son las únicas que permiten *dirty reads*.
 
-**Lost updates** (CONSULTARLO):
+**Lost updates**:
 
 - Si permito leer de una que aún no commiteó, entonces pueden ocurrir *lost updates* si se opera de forma *interleaved* con esa transacción. Por lo tanto si es **RC** y no **ACA** o si es **NoRC**, debo chequear eso.
 - Si es **ACA** no habrán *lost updates*, ya que solo leo de transacciones que ya commitearon.
@@ -601,9 +595,6 @@ Una transacción es 2PL $\iff$ solicita todos sus *locks* antes de liberar el pr
 - $T_4$ ❌, Versión 2PL: $T_4=wl_2(A);wl_4(D);u_4(A);u_4(D)$.
 - $T_5$ ❌, Versión 2PL: $T_5=rl_5(B);wl_5(A);u_5(B);u_5(A)$.
 
->[!IMPORTANT]
-> ¿Ni siquiera es legal no? porque $T_2$ y $T_1$ mantienen su $rl(A)$ al momento de que $T_4$ escribe.
-
 ### (d) Sobre el ítem anterior ubicar commits para que sean 2PL estricto y 2PL riguroso
 
 Una transacción es *2PL estricta* (**2PLE**) $\iff$ es <ins>**2PL**</ins> y <ins>no libera</ins> ninguno de sus <ins>*locks de escritura* hasta</ins> realizar <ins>*commit* o *abort*</ins>.
@@ -651,7 +642,7 @@ La planificación serial sale del orden topológico del grafo y eso $T_1;T_2;T_3
 
 Tiene ciclos $\therefore$ no es serializable.
 
->![IMPORTANT] ¿Que es SG(H_1)?
+>![IMPORTANT] ¿Que es SG(H_1)? RTA: Grafo de precedencia
 
 ### (c) Reescribir las transacciones para que se adhieran al protocolo 2PL
 
@@ -825,7 +816,7 @@ Convertimos cada una en **2PLE**:
 - $T_4=rl_4(Y);rl_4(X);u_4(X);u_4(Y);c_4;$ Adquiere todos sus locks antes de liberar el primero y los de escritura los libera después de su *commit* o *abort* $\therefore$ **2PLE** ✅.
 
 >[!IMPORTANT]
-> ¿A qué se refiere con modificar $H_1$ para que las transacciones sean 2PLE?¿Alcanza con hacer que cada transacción de $trans(H_1)$ sea 2PLE?
+> ¿A qué se refiere con modificar $H_1$ para que las transacciones sean 2PLE?¿Alcanza con hacer que cada transacción de $trans(H_1)$ sea 2PLE? (RTA: Si) RTA: Historia es 2PL $\iff$ todas las transacciones lo son.
 
 ## Ejercicio 3.7
 
@@ -907,7 +898,7 @@ El *grafo de precedencia* es el mismo que para el item anterior y es *acícliclo
 - Es **RG** $\iff$ es **ST** y al momento de escritura de un item todos sus lectores previos a ella ya abortaron o commitearon. No cumple por: $rl_3(A);rl_3(B);u_3(A);wl_2(A)$ $T_2$ escribe $A$ antes de que $T_3$, que lo leyó, haya commiteado o abortado.
 
 >[!IMPORTANT]
-> Consultar si es así como aplica la definición de **RG** o si solo se deben considerar las lecturas de transacciones, es decir que en este caso como 3 lee un valor que ninguna escribió en la historia no consideramos a $T_3$ como lectora de $B$.
+> Consultar si es así como aplica la definición de **RG** o si solo se deben considerar las lecturas de transacciones, es decir que en este caso como 3 lee un valor que ninguna escribió en la historia no consideramos a $T_3$ como lectora de $B$. RTA: Sí, en estos casos consideramos a las que leen de los valores que ya se encontraban en la base como lectoras de ese ítem.
 
 ### (c) Transformar las transacciones a 2PLE y 2PLR
 
@@ -969,7 +960,7 @@ Ahora si que puede terminar.
 
 >[!IMPORTANT]
 > **¿Y si $T_2$ obtenía lock de lectura antes cómo sería?**
-> $H = rl_2(A);ul_1(A);r_1(A);r_2(A);wl_1(A) Denied;wl_2(A) Denied;\dots$ $\therefore$ *deadlock*. **Este deadlock es inevitable o apliqué mal el locking?**
+> $H = rl_2(A);ul_1(A);r_1(A);r_2(A);wl_1(A) Denied;wl_2(A) Denied;\dots$ $\therefore$ *deadlock*. Este deadlock es inevitable. Recordar que los locks no son suficientes para garantizar ausencia de *deadlocks*, debemos agregar protocolos.
 
 >[!NOTE]
 >*Locking* por si solo **no** garantiza ausencia de *deadlocks*.
@@ -993,7 +984,7 @@ En este caso al no haber *upgrade lock* si tenés el lock de lectura sobre un el
 > Podemos usar el exclusive lock también para leer, nada nos lo impide, por ejemplo si tenés $r_1(A);w_1(A)$ conviene $wl_1(A);r_1(A);w_1(A)$ en vez de $rl_1(A);r_1(A);u_1(A);wl_1(A);w_1(A);u_1(A)$ que sería lo que haríamos si no tuviéramos *upgrade locking*[2](pag. 941)
 
 >[!IMPORTANT]
-> Consultar: Si no tenés *upgrade locking* para hacer $r_1(A);w_1(A)$ no te queda otra que hacer $rl_1(A);r_1(A);u_1(A);wl_1(A);w_1(A);u_1(A)$?
+> Consultar: Si no tenés *upgrade locking* para hacer $r_1(A);w_1(A)$ no te queda otra que hacer $rl_1(A);r_1(A);u_1(A);wl_1(A);w_1(A);u_1(A)$? RTA: Sí, por eso conviene tenerlo.
 
 Para cada lock solicitado se lo añade a la lock table con el tipo de lock que es, el item sobre el que actúa y a qué transacción pertenece.
 
@@ -1276,7 +1267,86 @@ $T_2$ bloquea a $T_1$ que bloquea a $T_3$ que bloquea a $T_2$. $\therefore$ *dea
 
 #### Un esquema *Wait-Die*
 
+**Para $H_1$**:
+
+|t   |Operación   |Timestamp order ($\lt$)|Observación                                                                                                                          |
+|:--:|:----------:|:---------------------:|:-----------------------------------------------------------------------------------------------------------------------------------:|
+|$0$ |$rl_1(A)$   |$T_1;T_2;T_3;T_4$      |                                                                                                                                     |
+|$1$ |$r_1(A)$    |$T_1;T_2;T_3;T_4$      |                                                                                                                                     |
+|$2$ |$rl_2(B)$   |$T_1;T_2;T_3;T_4$      |                                                                                                                                     |
+|$3$ |$r_2(B)$    |$T_1;T_2;T_3;T_4$      |                                                                                                                                     |
+|$4$ |$wl_1(C)$   |$T_1;T_2;T_3;T_4$      |                                                                                                                                     |
+|$5$ |$w_1(C)$    |$T_1;T_2;T_3;T_4$      |                                                                                                                                     |
+|$6$ |$rl_3(D)$   |$T_1;T_2;T_3;T_4$      |                                                                                                                                     |
+|$7$ |$r_3(D)$    |$T_1;T_2;T_3;T_4$      |                                                                                                                                     |
+|$8$ |$rl_4(E)$   |$T_1;T_2;T_3;T_4$      |                                                                                                                                     |
+|$9$ |$r_4(E)$    |$T_1;T_2;T_3;T_4$      |                                                                                                                                     |
+|$10$|¿$wl_3(B)$? |$T_1;T_2;T_3;T_4$      |$T_3$ ya tiene lockeado $B$, como es más joven la abortamos y la reiniciamos después con el mismo *timestamp*.                       |
+|$11$|$wl_2(C)$   |$T_1;T_2;T_3;T_4$      |$T_1$ ya tiene lockeado para lectura el $C$ y como $T_2$ es más joven la abortamos para reiniciarla después con el mismo *timestamp*.|
+|$12$|$wl_4(A)$   |$T_1;T_2;T_3;T_4$      |$T_1$ ya tiene lockeado ese recurso para lectura y es más vieja, entonces abortamos $T_4$                                            |
+|$13$|$wl_1(D)$   |$T_1;T_2;T_3;T_4$      |                                                                                                                                     |
+|$14$|$w_1(D)$    |$T_1;T_2;T_3;T_4$      |                                                                                                                                     |
+|$15$|$rl_2(B)$   |$T_1;T_2;T_3;T_4$      |Reinicia $T_2$                                                                                                                       |
+|$16$|$r_2(B)$    |$T_1;T_2;T_3;T_4$      |                                                                                                                                     |
+|$17$|$rl_3(D)$   |$T_1;T_2;T_3;T_4$      |Reinicia $T_3$                                                                                                                       |
+|$18$|$r_3(D)$    |$T_1;T_2;T_3;T_4$      |                                                                                                                                     |
+|$19$|$rl_4(E)$   |$T_1;T_2;T_3;T_4$      |Reinicia $T_4$                                                                                                                       |
+|$20$|$r_4(E)$    |$T_1;T_2;T_3;T_4$      |                                                                                                                                     |
+|$21$|$u_1(A)$    |$T_1;T_2;T_3;T_4$      |                                                                                                                                     |
+|$22$|$u_1(C)$    |$T_1;T_2;T_3;T_4$      |                                                                                                                                     |
+|$23$|$u_1(D)$    |$T_1;T_2;T_3;T_4$      |Terminó $T_1$                                                                                                                        |
+|$24$|$wl_2(C)$   |$T_1;T_2;T_3;T_4$      |                                                                                                                                     |
+|$25$|$w_2(C)$    |$T_1;T_2;T_3;T_4$      |                                                                                                                                     |
+|$26$|¿$wl_3(B)$? |$T_1;T_2;T_3;T_4$      |Como $T_2$ que es más vieja ya tiene ese recurso, debe reiniciarse $T_3$                                                             |
+|$27$|$wl_4(A)$   |$T_1;T_2;T_3;T_4$      |                                                                                                                                     |
+|$28$|$w_4(A)$    |$T_1;T_2;T_3;T_4$      |                                                                                                                                     |
+|$29$|$u_2(B)$    |$T_1;T_2;T_3;T_4$      |                                                                                                                                     |
+|$30$|$u_2(C)$    |$T_1;T_2;T_3;T_4$      |Termina $T_2$                                                                                                                        |
+|$31$|$rl_3(D)$   |$T_1;T_2;T_3;T_4$      |Reinicia $T_3$                                                                                                                       |
+|$32$|$r_3(D)$    |$T_1;T_2;T_3;T_4$      |                                                                                                                                     |
+|$33$|$u_4(E)$    |$T_1;T_2;T_3;T_4$      |                                                                                                                                     |
+|$34$|$u_4(A)$    |$T_1;T_2;T_3;T_4$      |Termina $T_4$                                                                                                                        |
+|$35$|$wl_3(B)$   |$T_1;T_2;T_3;T_4$      |                                                                                                                                     |
+|$36$|$w_3(B)$    |$T_1;T_2;T_3;T_4$      |                                                                                                                                     |
+|$37$|$u_3(B)$    |$T_1;T_2;T_3;T_4$      |                                                                                                                                     |
+|$38$|$u_3(D)$    |$T_1;T_2;T_3;T_4$      |Termina $T_3$                                                                                                                        |
+
+**Para $H_2$**:
+
+|t   |Operación  |Timestamp order ($\lt$)|Observación                                                                                                     |
+|:--:|:---------:|:---------------------:|:--------------------------------------------------------------------------------------------------------------:|
+|$0$ |$rl_1(A)$  |$T_1;T_2;T_3$          |                                                                                                                |
+|$1$ |$r_1(A)$   |$T_1;T_2;T_3$          |                                                                                                                |
+|$2$ |$rl_2(B)$  |$T_1;T_2;T_3$          |                                                                                                                |
+|$3$ |$r_2(B)$   |$T_1;T_2;T_3$          |                                                                                                                |
+|$4$ |$rl_3(C)$  |$T_1;T_2;T_3$          |                                                                                                                |
+|$5$ |$r_3(C)$   |$T_1;T_2;T_3$          |                                                                                                                |
+|$6$ |$¿wl_1(B)?$|$T_1;T_2;T_3$          |$T_2$ ya tiene lock de lectura sobre $B$ y es más joven, por lo que $T_1$ espera sin que la reiniciemos         |
+|$7$ |¿$wl_2(C)$?|$T_1;T_2;T_3$          |$T_3$ ya tiene el lock de lectura sobre $C$ y es más joven, por lo que dejamos esperar a $T_2$ sin reiniciarla  |
+|$8$ |¿$wl_3(A)$?|$T_1;T_2;T_3$          |$T_1$ tiene lock de lectura sobre $A$ y es más vieja, por lo que reiniciamos $T_3$ con el mismo *timestamp*     |
+|$9$ |¿$wl_1(B)$?|$T_1;T_2;T_3$          |$T_2$ es más joven que $T_1$ y tiene el lock de lectura sobre $B$, por lo que dejamos a $T_1$ esperarlo         |
+|$10$|$wl_2(C)$  |$T_1;T_2;T_3$          |$T_3$ tenía lockeado el $B$, pero como la reiniciamos ahora lo pudo tomar $T_2$.                                |
+|$11$|$w_2(C)$   |$T_1;T_2;T_3$          |                                                                                                                |
+|$12$|¿$rl_3(C)$?|$T_1;T_2;T_3$          |Quiere el recurso de una más vieja, por lo que la reiniciamos                                                   |
+|$13$|¿$wl_1(B)$?|$T_1;T_2;T_3$          |Más vieja quiere recurso de más joven, la dejamos esperando                                                     |
+|$14$|$u_2(B)$   |$T_1;T_2;T_3$          |                                                                                                                |
+|$15$|$u_2(C)$   |$T_1;T_2;T_3$          |Termina $T_2$                                                                                                   |
+|$16$|$rl_3(C)$  |$T_1;T_2;T_3$          |Reinicia $T_3$                                                                                                  |
+|$17$|$r_3(C)$   |$T_1;T_2;T_3$          |                                                                                                                |
+|$18$|$wl_1(B)$  |$T_1;T_2;T_3$          |Ahora si que puede tomar el recurso $B$                                                                         |
+|$19$|$w_1(B)$   |$T_1;T_2;T_3$          |                                                                                                                |
+|$20$|$u_1(A)$   |$T_1;T_2;T_3$          |                                                                                                                |
+|$21$|$u_1(B)$   |$T_1;T_2;T_3$          |Termina $T_1$                                                                                                   |
+|$22$|$rl_3(C)$  |$T_1;T_2;T_3$          |                                                                                                                |
+|$23$|$r_3(C)$   |$T_1;T_2;T_3$          |Terminó $T_3$                                                                                                   |
+|$24$|$wl_3(A)$  |$T_1;T_2;T_3$          |                                                                                                                |
+|$25$|$w_3(A)$   |$T_1;T_2;T_3$          |                                                                                                                |
+|$26$|$u_3(C)$   |$T_1;T_2;T_3$          |                                                                                                                |
+|$27$|$u_3(A)$   |$T_1;T_2;T_3$          |Termina $T_3$                                                                                                   |
+
 #### Un esquema *Wound-Wait*
+
+
 
 [1] [A Critique of ANSI SQL Isolation Levels](https://arxiv.org/pdf/cs/0701157)
 
