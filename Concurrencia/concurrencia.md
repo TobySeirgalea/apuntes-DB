@@ -1282,8 +1282,8 @@ $T_2$ bloquea a $T_1$ que bloquea a $T_3$ que bloquea a $T_2$. $\therefore$ *dea
 |$8$ |$rl_4(E)$   |$T_1;T_2;T_3;T_4$      |                                                                                                                                     |
 |$9$ |$r_4(E)$    |$T_1;T_2;T_3;T_4$      |                                                                                                                                     |
 |$10$|¿$wl_3(B)$? |$T_1;T_2;T_3;T_4$      |$T_3$ ya tiene lockeado $B$, como es más joven la abortamos y la reiniciamos después con el mismo *timestamp*.                       |
-|$11$|$wl_2(C)$   |$T_1;T_2;T_3;T_4$      |$T_1$ ya tiene lockeado para lectura el $C$ y como $T_2$ es más joven la abortamos para reiniciarla después con el mismo *timestamp*.|
-|$12$|$wl_4(A)$   |$T_1;T_2;T_3;T_4$      |$T_1$ ya tiene lockeado ese recurso para lectura y es más vieja, entonces abortamos $T_4$                                            |
+|$11$|¿$wl_2(C)$? |$T_1;T_2;T_3;T_4$      |$T_1$ ya tiene lockeado para lectura el $C$ y como $T_2$ es más joven la abortamos para reiniciarla después con el mismo *timestamp*.|
+|$12$|¿$wl_4(A)$? |$T_1;T_2;T_3;T_4$      |$T_1$ ya tiene lockeado ese recurso para lectura y es más vieja, entonces abortamos $T_4$                                            |
 |$13$|$wl_1(D)$   |$T_1;T_2;T_3;T_4$      |                                                                                                                                     |
 |$14$|$w_1(D)$    |$T_1;T_2;T_3;T_4$      |                                                                                                                                     |
 |$15$|$rl_2(B)$   |$T_1;T_2;T_3;T_4$      |Reinicia $T_2$                                                                                                                       |
@@ -1294,22 +1294,22 @@ $T_2$ bloquea a $T_1$ que bloquea a $T_3$ que bloquea a $T_2$. $\therefore$ *dea
 |$20$|$r_4(E)$    |$T_1;T_2;T_3;T_4$      |                                                                                                                                     |
 |$21$|$u_1(A)$    |$T_1;T_2;T_3;T_4$      |                                                                                                                                     |
 |$22$|$u_1(C)$    |$T_1;T_2;T_3;T_4$      |                                                                                                                                     |
-|$23$|$u_1(D)$    |$T_1;T_2;T_3;T_4$      |Terminó $T_1$                                                                                                                        |
-|$24$|$wl_2(C)$   |$T_1;T_2;T_3;T_4$      |                                                                                                                                     |
-|$25$|$w_2(C)$    |$T_1;T_2;T_3;T_4$      |                                                                                                                                     |
-|$26$|¿$wl_3(B)$? |$T_1;T_2;T_3;T_4$      |Como $T_2$ que es más vieja ya tiene ese recurso, debe reiniciarse $T_3$                                                             |
-|$27$|$wl_4(A)$   |$T_1;T_2;T_3;T_4$      |                                                                                                                                     |
-|$28$|$w_4(A)$    |$T_1;T_2;T_3;T_4$      |                                                                                                                                     |
-|$29$|$u_2(B)$    |$T_1;T_2;T_3;T_4$      |                                                                                                                                     |
-|$30$|$u_2(C)$    |$T_1;T_2;T_3;T_4$      |Termina $T_2$                                                                                                                        |
-|$31$|$rl_3(D)$   |$T_1;T_2;T_3;T_4$      |Reinicia $T_3$                                                                                                                       |
-|$32$|$r_3(D)$    |$T_1;T_2;T_3;T_4$      |                                                                                                                                     |
-|$33$|$u_4(E)$    |$T_1;T_2;T_3;T_4$      |                                                                                                                                     |
-|$34$|$u_4(A)$    |$T_1;T_2;T_3;T_4$      |Termina $T_4$                                                                                                                        |
-|$35$|$wl_3(B)$   |$T_1;T_2;T_3;T_4$      |                                                                                                                                     |
-|$36$|$w_3(B)$    |$T_1;T_2;T_3;T_4$      |                                                                                                                                     |
-|$37$|$u_3(B)$    |$T_1;T_2;T_3;T_4$      |                                                                                                                                     |
-|$38$|$u_3(D)$    |$T_1;T_2;T_3;T_4$      |Termina $T_3$                                                                                                                        |
+|$23$|$u_1(D)$    |$T_2;T_3;T_4$          |Terminó $T_1$                                                                                                                        |
+|$24$|$wl_2(C)$   |$T_2;T_3;T_4$          |                                                                                                                                     |
+|$25$|$w_2(C)$    |$T_2;T_3;T_4$          |                                                                                                                                     |
+|$26$|¿$wl_3(B)$? |$T_2;T_3;T_4$          |Como $T_2$ que es más vieja ya tiene ese recurso, debe reiniciarse $T_3$                                                             |
+|$27$|$wl_4(A)$   |$T_2;T_3;T_4$          |                                                                                                                                     |
+|$28$|$w_4(A)$    |$T_2;T_3;T_4$          |                                                                                                                                     |
+|$29$|$u_2(B)$    |$T_2;T_3;T_4$          |                                                                                                                                     |
+|$30$|$u_2(C)$    |$T_3;T_4$              |Termina $T_2$                                                                                                                        |
+|$31$|$rl_3(D)$   |$T_3;T_4$              |Reinicia $T_3$                                                                                                                       |
+|$32$|$r_3(D)$    |$T_3;T_4$              |                                                                                                                                     |
+|$33$|$u_4(E)$    |$T_3;T_4$              |                                                                                                                                     |
+|$34$|$u_4(A)$    |$T_3$                  |Termina $T_4$                                                                                                                        |
+|$35$|$wl_3(B)$   |$T_3$                  |                                                                                                                                     |
+|$36$|$w_3(B)$    |$T_3$                  |                                                                                                                                     |
+|$37$|$u_3(B)$    |$T_3$                  |                                                                                                                                     |
+|$38$|$u_3(D)$    |$T_3$                  |Termina $T_3$                                                                                                                        |
 
 **Para $H_2$**:
 
@@ -1330,23 +1330,153 @@ $T_2$ bloquea a $T_1$ que bloquea a $T_3$ que bloquea a $T_2$. $\therefore$ *dea
 |$12$|¿$rl_3(C)$?|$T_1;T_2;T_3$          |Quiere el recurso de una más vieja, por lo que la reiniciamos                                                   |
 |$13$|¿$wl_1(B)$?|$T_1;T_2;T_3$          |Más vieja quiere recurso de más joven, la dejamos esperando                                                     |
 |$14$|$u_2(B)$   |$T_1;T_2;T_3$          |                                                                                                                |
-|$15$|$u_2(C)$   |$T_1;T_2;T_3$          |Termina $T_2$                                                                                                   |
-|$16$|$rl_3(C)$  |$T_1;T_2;T_3$          |Reinicia $T_3$                                                                                                  |
-|$17$|$r_3(C)$   |$T_1;T_2;T_3$          |                                                                                                                |
-|$18$|$wl_1(B)$  |$T_1;T_2;T_3$          |Ahora si que puede tomar el recurso $B$                                                                         |
-|$19$|$w_1(B)$   |$T_1;T_2;T_3$          |                                                                                                                |
-|$20$|$u_1(A)$   |$T_1;T_2;T_3$          |                                                                                                                |
-|$21$|$u_1(B)$   |$T_1;T_2;T_3$          |Termina $T_1$                                                                                                   |
-|$22$|$rl_3(C)$  |$T_1;T_2;T_3$          |                                                                                                                |
-|$23$|$r_3(C)$   |$T_1;T_2;T_3$          |Terminó $T_3$                                                                                                   |
-|$24$|$wl_3(A)$  |$T_1;T_2;T_3$          |                                                                                                                |
-|$25$|$w_3(A)$   |$T_1;T_2;T_3$          |                                                                                                                |
-|$26$|$u_3(C)$   |$T_1;T_2;T_3$          |                                                                                                                |
-|$27$|$u_3(A)$   |$T_1;T_2;T_3$          |Termina $T_3$                                                                                                   |
+|$15$|$u_2(C)$   |$T_1;T_3$              |Termina $T_2$                                                                                                   |
+|$16$|$rl_3(C)$  |$T_1;T_3$              |Reinicia $T_3$                                                                                                  |
+|$17$|$r_3(C)$   |$T_1;T_3$              |                                                                                                                |
+|$18$|$wl_1(B)$  |$T_1;T_3$              |Ahora si que puede tomar el recurso $B$                                                                         |
+|$19$|$w_1(B)$   |$T_1;T_3$              |                                                                                                                |
+|$20$|$u_1(A)$   |$T_1;T_3$              |                                                                                                                |
+|$21$|$u_1(B)$   |$T_3$                  |Termina $T_1$                                                                                                   |
+|$22$|$rl_3(C)$  |$T_3$                  |                                                                                                                |
+|$23$|$r_3(C)$   |$T_3$                  |                                                                                                                |
+|$24$|$wl_3(A)$  |$T_3$                  |                                                                                                                |
+|$25$|$w_3(A)$   |$T_3$                  |                                                                                                                |
+|$26$|$u_3(C)$   |$T_3$                  |                                                                                                                |
+|$27$|$u_3(A)$   |$T_3$                  |Termina $T_3$                                                                                                   |
+
+**Para $H_3#**:
+
+|t   |Operación  |Timestamp order ($\lt$)|Observación                                                                                                     |
+|:--:|:---------:|:---------------------:|:--------------------------------------------------------------------------------------------------------------:|
+|$0$ |$rl_1(A)$  |$T_1;T_2;T_3$          |                                                                                                                |
+|$1$ |$r_1(A)$   |$T_1;T_2;T_3$          |                                                                                                                |
+|$2$ |$rl_2(B)$  |$T_1;T_2;T_3$          |                                                                                                                |
+|$3$ |$r_2(B)$   |$T_1;T_2;T_3$          |                                                                                                                |
+|$4$ |$rl_3(C)$  |$T_1;T_2;T_3$          |                                                                                                                |
+|$5$ |$r_3(C)$   |$T_1;T_2;T_3$          |                                                                                                                |
+|$6$ |¿$wl_1(B)$?|$T_1;T_2;T_3$          |$T_2$ ya tiene lock de lectura sobre $B$ y es más joven, por lo que $T_1$ espera sin que la reiniciemos         |
+|$7$ |¿$wl_2(C)$?|$T_1;T_2;T_3$          |$T_3$ ya tiene el lock de lectura sobre $C$ y es más joven, por lo que dejamos esperar a $T_2$ sin reiniciarla  |
+|$8$ |¿$wl_3(A)$?|$T_1;T_2;T_3$          |$T_1$ tiene lock de lectura sobre $A$ y es más vieja, por lo que reiniciamos $T_3$ con el mismo *timestamp*     |
+|$9$ |¿$wl_1(B)$?|$T_1;T_2;T_3$          |$T_2$ es más joven que $T_1$ y tiene el lock de lectura sobre $B$, por lo que dejamos a $T_1$ esperarlo         |
+|$10$|¿$wl_2(C)$?|$T_1;T_2;T_3$          |$T_3$ tenía lockeado el $C$, pero como la reiniciamos ahora lo pudo tomar $T_2$.                                |
+|$11$|$w_2(C)$   |$T_1;T_2;T_3$          |                                                                                                                |
+|$12$|¿$rl_3(C)$?|$T_1;T_2;T_3$          |$T_3$ quiere recurso que tiene una más vieja, por lo que la reiniciamos.                                        |
+|$13$|¿$wl_1(B)$?|$T_1;T_2;T_3$          |Más vieja quiere recurso de más joven, la dejamos esperando                                                     |
+|$14$|$u_2(B)$   |$T_1;T_2;T_3$          |                                                                                                                |
+|$15$|$u_2(C)$   |$T_1;T_3$              |Termina $T_2$                                                                                                   |
+|$16$|$rl_3(C)$  |$T_1;T_3$              |Reinicia $T_3$                                                                                                  |
+|$17$|$r_3(C)$   |$T_1;T_3$              |Ahora $T_3$ sí que pudo tomar el recurso porque, al terminar $T_2$ lo liberó                                    |
+|$18$|$wl_1(B)$  |$T_1;T_3$              |Ahora si que puede tomar el recurso $B$                                                                         |
+|$19$|$w_1(B)$   |$T_1;T_3$              |                                                                                                                |
+|$20$|¿$wl_3(A)$?|$T_1;T_3$              |$T_3$ quiere recurso que tiene $T_1$ que es más vieja, por lo que reiniciamos $T_3$ con el mismo *timestamp*.   |
+|$21$|$u_1(A)$   |$T_1;T_3$              |                                                                                                                |
+|$22$|$u_3(A)$   |$T_3$                  |Termina $T_1$                                                                                                   |
+|$23$|$rl_3(C)$  |$T_3$                  |Reinicio $T_3$                                                                                                  |
+|$24$|$r_3(C)$   |$T_3$                  |                                                                                                                |
+|$25$|$wl_3(A)$  |$T_3$                  |                                                                                                                |
+|$26$|$w_3(A)$   |$T_3$                  |                                                                                                                |
+|$27$|$u_3(C)$   |$T_3$                  |                                                                                                                |
+|$28$|$u_3(A)$   |$T_3$                  |Termina $T_3$                                                                                                   |
 
 #### Un esquema *Wound-Wait*
 
+- Si la que quiere el recurso es más vieja, desalojamos a la más joven y se lo damos a la más vieja. Reiniciando la más joven con el mismo *timestamp*.
+- Si la que quiere el recurso es más joven, la dejamos esperando.
 
+**Para $H_1$**:
+
+|t   |Operación   |Timestamp order ($\lt$)|Observación                                                                                                                          |
+|:--:|:----------:|:---------------------:|:-----------------------------------------------------------------------------------------------------------------------------------:|
+|$0$ |$rl_1(A)$   |$T_1;T_2;T_3;T_4$      |                                                                                                                                     |
+|$1$ |$r_1(A)$    |$T_1;T_2;T_3;T_4$      |                                                                                                                                     |
+|$2$ |$rl_2(B)$   |$T_1;T_2;T_3;T_4$      |                                                                                                                                     |
+|$3$ |$r_2(B)$    |$T_1;T_2;T_3;T_4$      |                                                                                                                                     |
+|$4$ |$wl_1(C)$   |$T_1;T_2;T_3;T_4$      |                                                                                                                                     |
+|$5$ |$w_1(C)$    |$T_1;T_2;T_3;T_4$      |                                                                                                                                     |
+|$6$ |$rl_3(D)$   |$T_1;T_2;T_3;T_4$      |                                                                                                                                     |
+|$7$ |$r_3(D)$    |$T_1;T_2;T_3;T_4$      |                                                                                                                                     |
+|$8$ |$rl_4(E)$   |$T_1;T_2;T_3;T_4$      |                                                                                                                                     |
+|$9$ |$r_4(E)$    |$T_1;T_2;T_3;T_4$      |                                                                                                                                     |
+|$10$|¿$wl_3(B)$? |$T_1;T_2;T_3;T_4$      |$T_2$ ya tiene lockeado $B$, como es más joven la dejamos esperar                                                                    |
+|$11$|¿$wl_2(C)$? |$T_1;T_2;T_3;T_4$      |$T_1$ ya tiene lockeado para lectura el $C$ y como $T_2$ es más joven la dejamos esperar.                                            |
+|$12$|¿$wl_4(A)$? |$T_1;T_2;T_3;T_4$      |$T_1$ ya tiene lockeado ese recurso para lectura y es más vieja, entonces dejamos esperar a $T_4$                                    |
+|$13$|$wl_1(D)$   |$T_1;T_2;T_3;T_4$      |$T_1$ quiere recurso que tiene lockeado $T_4$ que es más joven, entonces reiniciamos $T_4$ y $T_1$ obtiene el recurso                |
+|$14$|$w_1(D)$    |$T_1;T_2;T_3;T_4$      |                                                                                                                                     |
+|$15$|¿$wl_2(C)$? |$T_1;T_2;T_3;T_4$      |Vuelve a intentar $T_2$ pero $T_1$ que es más vieja aún no lo liberó, por lo que dejamos a $T_2$ esperando                           |
+|$16$|¿$wl_3(B)$? |$T_1;T_2;T_3;T_4$      |Vuelve a intentar $T_3$ pero $T_2$ que es más vieja aún no lo liberó, por lo que dejamos a $T_3$ esperando                           |
+|$17$|¿$wl_4(A)$? |$T_1;T_2;T_3;T_4$      |$T_1$ ya tiene lockeado ese recurso para lectura y es más vieja, entonces dejamos esperar a $T_4$                                    |
+|$18$|$u_1(A)$    |$T_1;T_2;T_3;T_4$      |                                                                                                                                     |
+|$19$|$u_1(C)$    |$T_1;T_2;T_3;T_4$      |                                                                                                                                     |
+|$20$|$u_1(D)$    |$T_2;T_3;T_4$          |Terminó $T_1$                                                                                                                        |
+|$21$|$wl_2(C)$   |$T_2;T_3;T_4$          |Ahora $T_2$ si puede tomar el recurso que tenía $T_1$                                                                                |
+|$22$|$w_2(C)$    |$T_2;T_3;T_4$          |                                                                                                                                     |
+|$23$|¿$wl_3(B)$? |$T_2;T_3;T_4$          |Vuelve a intentar $T_3$ pero $T_2$ que es más vieja aún no lo liberó, por lo que dejamos a $T_3$ esperando                           |
+|$24$|¿$wl_4(A)?  |$T_2;T_3;T_4$          |Vuelve a intentar $T_4$ pero $T_1$ ya terminó y el recurso $A$ quedó libre, así que puede continuar                                  |
+|$25$|$w_4(A)$    |$T_2;T_3;T_4$          |                                                                                                                                     |
+|$26$|$u_2(B)$    |$T_2;T_3;T_4$          |                                                                                                                                     |
+|$27$|$u_2(C)$    |$T_2;T_3;T_4$          |Termina $T_2$                                                                                                                        |
+|$28$|¿$wl_3(B)$? |$T_3;T_4$              |Vuelve a intentar $T_3$ pero como $T_2$ ya liberó $B$ ahora puede continuar                                                          |
+|$29$|$w_3(B)$    |$T_3;T_4$              |                                                                                                                                     |
+|$30$|$u_3(D)$    |$T_3;T_4$              |                                                                                                                                     |
+|$31$|$u_3(B)$    |$T_3;T_4$              |Termina $T_3$                                                                                                                        |
+|$32$|$u_4(E)$    |$T_4$                  |                                                                                                                                     |
+|$33$|$u_4(A)$    |$T_4$                  |                                                                                                                                     |
+
+**Para $H_2$**:
+
+|t   |Operación  |Timestamp order ($\lt$)|Observación                                                                                                     |
+|:--:|:---------:|:---------------------:|:--------------------------------------------------------------------------------------------------------------:|
+|$0$ |$rl_1(A)$  |$T_1;T_2;T_3$          |                                                                                                                |
+|$1$ |$r_1(A)$   |$T_1;T_2;T_3$          |                                                                                                                |
+|$2$ |$rl_2(B)$  |$T_1;T_2;T_3$          |                                                                                                                |
+|$3$ |$r_2(B)$   |$T_1;T_2;T_3$          |                                                                                                                |
+|$4$ |$rl_3(C)$  |$T_1;T_2;T_3$          |                                                                                                                |
+|$5$ |$r_3(C)$   |$T_1;T_2;T_3$          |                                                                                                                |
+|$6$ |$¿wl_1(B)?$|$T_1;T_2;T_3$          |$T_2$ ya tiene lock de lectura sobre $B$ y es más joven, por la reiniciamos y le damos el recurso a $T_1$       |
+|$7$ |$wl_1(B)$  |$T_1;T_2;T_3$          |Ahora si que puede tomar el recurso $B$                                                                         |
+|$8$ |$w_1(B)$   |$T_1;T_2;T_3$          |                                                                                                                |
+|$9$ |$u_1(A)$   |$T_1;T_2;T_3$          |                                                                                                                |
+|$10$|$u_1(B)$   |$T_1;T_2;T_3$          |Terminó $T_1$                                                                                                   |
+|$11$|$rl_2(B)$  |$T_2;T_3$              |Reinicia $T_2$                                                                                                  |
+|$12$|$r_2(B)$   |$T_2;T_3$              |                                                                                                                |
+|$13$|$wl_3(A)$  |$T_2;T_3$              |                                                                                                                |
+|$14$|$w_3(A)$   |$T_2;T_3$              |                                                                                                                |
+|$15$|$u_3(C)$   |$T_2;T_3$              |                                                                                                                |
+|$16$|$u_3(A)$   |$T_2;T_3$              |Termina $T_3$                                                                                                   |
+|$17$|¿$wl_2(C)$?|$T_2$                  |$T_2$ quedó sola                                                                                                |
+|$18$|$u_2(B)$   |$T_2$                  |                                                                                                                |
+|$19$|$u_2(C)$   |$T_2$                  |Termina $T_2$                                                                                                   |
+
+**Para $H_3$**:
+
+|t   |Operación  |Timestamp order ($\lt$)|Observación                                                                                                      |
+|:--:|:---------:|:---------------------:|:---------------------------------------------------------------------------------------------------------------:|
+|$0$ |$rl_1(A)$  |$T_1;T_2;T_3$          |                                                                                                                 |
+|$1$ |$r_1(A)$   |$T_1;T_2;T_3$          |                                                                                                                 |
+|$2$ |$rl_2(B)$  |$T_1;T_2;T_3$          |                                                                                                                 |
+|$3$ |$r_2(B)$   |$T_1;T_2;T_3$          |                                                                                                                 |
+|$4$ |$rl_3(C)$  |$T_1;T_2;T_3$          |                                                                                                                 |
+|$5$ |$r_3(C)$   |$T_1;T_2;T_3$          |                                                                                                                 |
+|$6$ |¿$wl_1(B)$?|$T_1;T_2;T_3$          |$T_2$ ya tiene lock de lectura sobre $B$ y es más joven, por lo que $T_2$ es reiniciada                          |
+|$6$ |$w_1(B)$   |$T_1;T_2;T_3$          |$T_1$ obtiene el recurso por ser más vieja                                                                       |
+|$7$ |¿$wl_2(C)$?|$T_1;T_2;T_3$          |$T_3$ ya tiene el lock de lectura sobre $C$ y es más joven, por lo que reiniciamos $T_3$                         |
+|$8$ |$w_2(C)$   |$T_1;T_2;T_3$          |                                                                                                                 |
+|$9$ |$u_1(A)$   |$T_1;T_2;T_3$          |                                                                                                                 |
+|$10$|$u_1(B)$   |$T_1;T_2;T_3$          |Termina $T_1$                                                                                                    |
+|$11$|$rl_2(B)$  |$T_2;T_3$              |Reiniciamos $T_2$                                                                                                |
+|$12$|$r_2(B)$   |$T_2;T_3$              |                                                                                                                 |
+|$13$|$rl_3(C)$  |$T_2;T_3$              |Reiniciamos $T_3$                                                                                                |
+|$14$|$r_3(C)$   |$T_2;T_3$              |                                                                                                                 |
+|$15$|¿$wl_2(C)$?|$T_2;T_3$              |$T_2$ quiere escribir un item que tiene lockeado $T_3$ que es más joven, entonces se lo damos y reiniciamos $T_3$|
+|$16$|$w_2(C)$   |$T_2;T_3$              |                                                                                                                 |
+|$17$|$u_2(B)$   |$T_2;T_3$              |                                                                                                                 |
+|$18$|$u_2(C)$   |$T_3$                  |Termina $T_2$                                                                                                    |
+|$19$|¿$rl_3(C)$?|$T_3$                  |Ahora que terminó $T_2$ sí que puede leer $C$                                                                    |
+|$20$|$r_3(C)$   |$T_3$                  |                                                                                                                 |
+|$21$|$wl_3(A)$  |$T_3$                  |                                                                                                                 |
+|$22$|$w_3(A)$   |$T_3$                  |                                                                                                                 |
+|$23$|$u_3(C)$   |$T_3$                  |                                                                                                                 |
+|$24$|$u_3(A)$   |$T_3$                  |Termina $T_3$                                                                                                    |
 
 [1] [A Critique of ANSI SQL Isolation Levels](https://arxiv.org/pdf/cs/0701157)
 
