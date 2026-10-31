@@ -273,6 +273,8 @@ Si $T_i$ quiere realizar un lock sobre un item y no puede porque $T_j$ ya tiene 
 - No waiting (NW): Si no puede obtener lock que necesita → la abortan y que se reinicie después de un periodo de tiempo. Genera muchos *aborts*.
 - Cautious waiting (CW): Querés un ítem que tiene otra transacción $T ^\prime$, si esa no está esperando un ítem que tiene otra, entonces te dejo esperar, sino *abort* y intentá más tarde. Es *deadlock free*.
 
+
+
 ## Ejercicio 1.2
 
 > Dadas las siguientes historias (schedules):
@@ -1114,7 +1116,7 @@ $\dots;rl_(C);r_2(C);wl_4(A);w_4(A);u_4(D);u_4(A);wl_2(A);w_2(A);u_2(C);u_2(A)$ 
 
 Una transacción $i$ quiere realizar un lock sobre un recurso que tiene otra transacción $j$.
 
-- Si la que lo quiere es más vieja que la que lo tiene $\xrightarrow$ abortamos a la que lo tiene y que reinicie más tarde con misma *timestamp*.
+- Si la que lo quiere es más vieja que la que lo tiene $\implies$ abortamos a la que lo tiene y que reinicie más tarde con misma *timestamp*.
 - Si la que lo quiere es más joven que la que lo tiene, la dejamos esperarlo.
 
 En nuestro ejemplo sería:
@@ -1477,6 +1479,29 @@ $T_2$ bloquea a $T_1$ que bloquea a $T_3$ que bloquea a $T_2$. $\therefore$ *dea
 |$22$|$w_3(A)$   |$T_3$                  |                                                                                                                 |
 |$23$|$u_3(C)$   |$T_3$                  |                                                                                                                 |
 |$24$|$u_3(A)$   |$T_3$                  |Termina $T_3$                                                                                                    |
+
+## Ejercicio 3.13
+
+>Dado el siguiente *schedule* $s$ en el modelo de *locking ternario*: $\\ s = wl_1(A); rl_1(B); u_1(B); wl_3(C); wl_2(B); rl_3(D); u_3(C); rl_2(C); wl_3(D); u_2(B); u_3(D); u_1(A); u_2(C); c_3; c_1; c_2 \\$ Responda verdadero o falso:
+
+- **$s$ es 2PL**
+  - Vemos si todas sus transacciones son 2PL:
+    - $T_1 = wl_1(A);rl_1(B);u_1(B);u_2(A):c_1$. Es 2PL.
+    - $T_2 = wl_2(B);rl_2(C);u_2(B);u_2(C);c_2$. Es 2PL.
+    - $T_3 = wl_3(C);rl_3(D);u_3(C);wl_3(D);u_3(D);c_3$. No es 2PL, $u_3(C) \lt wl_3(D)$.
+    - $\therefore s$ no es 2PL.
+- **$s$ soporta *update lock**
+  - No, no aparece ninguna transacción $T_i$ solicitando $ul_i(X)$ para ningún $X$.
+- **$s$ soporta *upgrading lock**
+  - Sí, ya que $T_3$ tenía lock de lectura sobre $D y luego sin haber hecho $u_3(D)$ adquirió el lock de escritura $wl_3(D)$. Si no tuviera *upgrading lock* antes de adquirir el de escritura debería haber liberado el de lectura con $u_3(D)$.
+- **$T_1 \xrightarrow{} T_3 \xrightarrow{} T_2$ es la única historia serial equivalente al entrelazado anterior**
+  - Construimos el grafo de precedencia: ![Grafo de precedencia](./images/ej3.13d.drawio.svg).
+  - Tanto $T_1;T_3;T_2$ como $T_3;T_1;T_2$ son órdenes topológicos válidos, entonces ambas son historias serializables equivalentes. $\therefore$ Falso.
+- **$s$ es RC (*recuperable*)**
+  - $T_2$ lee $C$ de $T_3$ y $c_3 \lt c_2$.
+  - Son las únicas lecturas entre transacciones, y todas las que leen hacen commit después de aquella de la que leyeron, así que es **RC**.
+- **$s$ es ACA**
+  - No porque $T_2$ lee $C$ de $T_3$ y $rl_2(C) \lt c_3$. Es decir lee de una que aún no había commiteado, así que no es **ACA**.
 
 [1] [A Critique of ANSI SQL Isolation Levels](https://arxiv.org/pdf/cs/0701157)
 
