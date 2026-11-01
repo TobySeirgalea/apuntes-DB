@@ -267,7 +267,7 @@ $H=l_1(A);l_2(B);l_1(B);l_2(A);u_1(A);u_1(B);u_2(B);u_2(A)$
 
 ## Ejercicio 3.1
 
-> Dadas las siguientes transacciones $T_1$ y $T_2: \\$
+> Dadas las siguientes transacciones $T_1$ y $T_2$:
 > $T_1=wl_1(A);A = A + 1;wl_1(B);B = A + B;u_1(A);u_1(B) \\ T_2=rl_2(A);wl_2(C);C = A + 1;wl_2(D);D = 1;u_2(A);u_2(D);u_2(C)$.
 
 ### (a) Construir un *schedule* legal serializable que no sea serial
@@ -371,7 +371,7 @@ Una transacción es *2PL riguroso* (**2PLR**) $\iff$ es <ins>**2PL**</ins> y **n
 
 ![Posibles aristas y orden elegido](./images/ej3.4a.drawio.svg)
 
-$H=rl_1(A);wl_1(B);rl_2(A);u_2(A);rl_2(B);u_1(A);wl_3(A);u_3(A);u_1(B);(Terminó~T_1);u_2(B);(Terminó~T_2);wl_3(B);u_3(B);(Terminó~T_3);rl_4(B);u_4(B);wl_4(A);u_4(A);(Terminó~T_4)$
+$H=rl_1(A);wl_1(B);rl_2(A);u_2(A);rl_2(B);u_1(A);wl_3(A);u_3(A);u_1(B);(\text{Terminó }T_1);u_2(B);(\text{Terminó }T_2);wl_3(B);u_3(B);(\text{Terminó }T_3);rl_4(B);u_4(B);wl_4(A);u_4(A);(\text{Terminó }T_4)$
 
 La planificación serial sale del orden topológico del grafo y eso $T_1;T_2;T_3;T_4$.
 
@@ -383,7 +383,8 @@ La planificación serial sale del orden topológico del grafo y eso $T_1;T_2;T_3
 
 Tiene ciclos $\therefore$ no es serializable.
 
->![IMPORTANT] ¿Que es SG(H_1)? RTA: Grafo de precedencia
+>![IMPORTANT] 
+> ¿Que es $SG(H_1)$? RTA: Grafo de precedencia
 
 ### (c) Reescribir las transacciones para que se adhieran al protocolo 2PL
 
@@ -419,15 +420,17 @@ Las historia serial equivalente es $H_1 \equiv H_s = T_3;T_1;T_2 = wl_3(B);rl_3(
 
 ### (b) Responder: ¿Existe algún *schedule* legal no serializable que se pueda construir con $T_1$, $T_2$ y $T_3$? Justificar la respuesta. En caso afirmativo, mostrar un ejemplo y justificar
 
-~~- Probemos invirtiendo las aristas de $T_3$ a $T_2$. Estas son introducidas por los pares $wl_3(B);\dots;wl_2(B)$ y $rl_3(C);\dots;wl_2(C)$, por lo que necesitamos que las operaciones del primer término se realicen antes que las del segundo.~~
-~~- Debemos asegurarnos de preservar las otras aristas para no romper el ciclo que intentamos formar. $T_3 \xrightarrow{B} T_1$ se genera con $wl_3(B);rl_1(B)$, luego las $T_1 \xrightarrow{A,B,C} T_2$ se generan con $rl_1(A);wl_2(A)$, $rl_1(B);wl_2(B)$, $rl_1(C);wl_2(C)$~~
-~~- Por lo tanto debemos cumplir los siguientes órdenes:~~
-~~  - $wl_3(B);rl_1(B)$. (a)~~
-~~  - $rl_1(A);wl_2(A)$.~~
-~~  - $rl_1(B);wl_2(B)$. (b)~~
-~~  - $rl_1(C);wl_2(C)$.~~
-~~  - $wl_2(C);rl_3(C)$.~~
-~~  - $wl_2(B);wl_3(B)$. (c)~~
+- ~~Probemos invirtiendo las aristas de $T_3$ a $T_2$. Estas son introducidas por los pares $wl_3(B);\dots;wl_2(B)$ y $rl_3(C);\dots;wl_2(C)$, por lo que necesitamos que las operaciones del primer término se realicen antes que las del segundo.~~
+- ~~Debemos asegurarnos de preservar las otras aristas para no romper el ciclo que intentamos formar. $T_3 \xrightarrow{B} T_1$ se genera con $wl_3(B);rl_1(B)$, luego las $T_1 \xrightarrow{A,B,C} T_2$ se generan con $rl_1(A);wl_2(A)$, $rl_1(B);wl_2(B)$, $rl_1(C);wl_2(C)$~~
+- ~~Por lo tanto debemos cumplir los siguientes órdenes:~~
+  - ~~$wl_3(B);rl_1(B)$. (a)~~
+  - ~~$rl_1(A);wl_2(A)$.~~
+  - ~~$rl_1(B);wl_2(B)$. (b)~~
+  - ~~$rl_1(C);wl_2(C)$.~~
+  - ~~$wl_2(C);rl_3(C)$.~~
+  - ~~$wl_2(B);wl_3(B)$. (c)~~
+
+Reintento:
 
 $T_1=rl_1(A);rl_1(B);u_1(B);u_1(A);rl_1(C);u_1(C)$.
 
@@ -467,7 +470,7 @@ Sí, encontré el siguiente: $wl_3(B);\dots;rl_1(B)$ como $T_1$ lee de $T_3$ sin
 > $H_1 = rl_3(X); rl_2(X); wl_3(Y); u_3(X); wl_2(X); u_3(Y); rl_4(Y); u_2(X); rl_1(Y); rl_4(X); u_1(Y);u_4(X); wl_1(X); u_4(Y); u_1(X); c_3; c_2; c_4; c_1$
 >Nota: Asuma que entre un wl y su correspondiente ul ocurre solamente una escritura del ítem (no ocurre una lectura)
 
-### (a) Responder: ¿$H_1$ es legal?¿Todas las $T_i$ son 2PL?
+### (a) Responder: ¿ $H_1$ es legal?¿Todas las $T_i$ son 2PL?
 
 <ins> Chequeamos que sea legal y consistente:</ins>
 
@@ -482,7 +485,7 @@ Sí, encontré el siguiente: $wl_3(B);\dots;rl_1(B)$ como $T_1$ lee de $T_3$ sin
     - $wl_3(Y)$ no tiene problemas porque nadie tenía un lock sobre $Y$.
     - $wl_2(X)$ previo a ella, $T_3$ y $T_2$ tenían locks de lectura sobre $X$. $T_3$ lo liberó antes de esta escritura pero $T_2$ no, por lo que ocurre un *upgrading lock*, donde $T_2$ pasa de tener el único lock de lectura a tener el de escritura exclusivo.
     >[!IMPORTANT]
-    > Consultar si esto no rompe legalidad de la historia
+    > Consultar si esto no rompe legalidad de la historia RTA: No.
     - $wl_1(X)$ adquiere el lock de escritura cuando era el único que poseía el de lectura. Es otro *upgrading lock*.
 - *Si solicitaste lock de escritura sobre un item nadie lo puede leer ni escribir hasta que lo liberes* ✅
   - Entre $wl_3(Y)$ y $u_3(Y)$ no hay escrituras ni lecturas sobre $Y$.
@@ -681,7 +684,7 @@ $H=rl_1(A); r_1(A); rl_1(B); r_1(B);rl_2(A); r_2(A); rl_2(B); r_2(B);\underline{
 
 ## Ejercicio 3.9
 
-> Tomando las siguientes transacciones: $\\ T_1=rl_1(A);r_1(A);wl_1(A);w_1(A);u_1(A) \\ T_2 = rl_2(A);r_2(A);wl_2(A);w_2(A);u_2(A) \\$
+> Tomando las siguientes transacciones: $ \\ T_1=rl_1(A);r_1(A);wl_1(A);w_1(A);u_1(A) \\ T_2 = rl_2(A);r_2(A);wl_2(A);w_2(A);u_2(A) \\ $
 
 ### (a) Proponer un entrelazamiento que de un *deadlock* como resultado
 
@@ -691,11 +694,11 @@ Tanto $T_1$ como $T_2$ adquieren el lock de lectura compartido, pero ninguno pue
 
 ### (b) Reescribir las transacciones, pero ahora, usando un modelo que soporte *update lock* y verificar si puede resolverse el *deadlock* anterior
 
-$\\ T_1=ul_1(A);r_1(A);wl_1(A);w_1(A);u_1(A) \\ T_2 = rl_2(A);r_2(A);wl_2(A);w_2(A);u_2(A) \\$
+$ \\ T_1=ul_1(A);r_1(A);wl_1(A);w_1(A);u_1(A) \\ T_2 = rl_2(A);r_2(A);wl_2(A);w_2(A);u_2(A) \\ $
 
 Veamos la misma historia que antes generó un *deadlock*:
 
-$H = ul_1(A);rl_2(A) Denied;r_1(A);wl_1(A);w_1(A);u_1(A);rl_2(A);r_2(A);wl_2(A);w_2(A);u_2(A)$
+$H = ul_1(A);rl_2(A) \text{Denied};r_1(A);wl_1(A);w_1(A);u_1(A);rl_2(A);r_2(A);wl_2(A);w_2(A);u_2(A)$
 
 Ahora si que puede terminar.
 
@@ -735,9 +738,9 @@ $H_1 = rl_1(A);r_1(A);rl_2(B);r_2(B);rl_3(C)r_3(C);rl_1(B);r_1(B);rl_2(C);r_2(C)
 
 Antes de conceder el *upgrade* de lock de lectura compartido al de escritura exclusivo tenemos que esperar a que los que tienen el lock de escritura lo liberen. En este caso por como puse los *unlocks* no hubieron denegaciones, pero es algo que podría suceder dependiendo la política del *scheduler*.
 
-$H_2 = rl_1(A);r_1(A);rl_2(B);r_2(B);rl_3(C);r_3(C);rl_1(B);r_1(B);rl_2(C);r_2(C);rl_3(D);r_3(D);wl_1(A)(upgrade~lock);w_1(A);u_1(B);wl_2(B)(upgrade~lock);w_2(B);u_2(C);wl_3(C)(upgrade~lock);w_3(C);u_1(A);u_2(B);u_3(C);u_3(D)$
+$H_2 = rl_1(A);r_1(A);rl_2(B);r_2(B);rl_3(C);r_3(C);rl_1(B);r_1(B);rl_2(C);r_2(C);rl_3(D);r_3(D);wl_1(A)(\text{upgrade lock});w_1(A);u_1(B);wl_2(B)(\text{upgrade lock});w_2(B);u_2(C);wl_3(C)(\text{upgrade lock});w_3(C);u_1(A);u_2(B);u_3(C);u_3(D)$
 
-$H_3 = rl_1(A);r_1(A);rl_2(B);r_2(B);rl_3(C);r_3(C);rl_1(B);r_1(B);rl_2(C);r_2(C);rl_3(A);r_3(A);u_3(A);wl_1(A)(upgrade~lock);wl_1(A)(upgrade~lock);w_1(A);u_1(B);wl_2(B);w_2(B);u_2(B);u_2(C);wl_3(C);w_3(C);u_3(C);$
+$H_3 = rl_1(A);r_1(A);rl_2(B);r_2(B);rl_3(C);r_3(C);rl_1(B);r_1(B);rl_2(C);r_2(C);rl_3(A);r_3(A);u_3(A);wl_1(A)(\text{upgrade lock});wl_1(A)(\text{upgrade lock});w_1(A);u_1(B);wl_2(B);w_2(B);u_2(B);u_2(C);wl_3(C);w_3(C);u_3(C);$
 
 ### (c)  Insertar ahora locks de lectura, escritura y de actualización (update locks). Describir que ocurre en la ejecución
 
@@ -757,7 +760,7 @@ Acá no pude conceder el *update lock* en el momento previo a la lectura del ít
 
 ## Ejercicio 3.11
 
-> Dadas las siguientes transacciones: $\\ T_1 = l_1(A); r_1(A); l_1(B); w_1(B); u_1(A); u_1(B) \\ T_2 = l_2(C); r_2(C); l_2(A); w_2(A); u_2(C); u_2(A) \\ T_3 = l_3(B); r_3(B); l_3(C); w_3(C); u_3(B); u_3(C) \\ T_4 = l_4(D); r_4(D); l_4(A); w_4(A); u_4(D); u_4(A) \\$ Se pide:
+> Dadas las siguientes transacciones: $ \\ T_1 = l_1(A); r_1(A); l_1(B); w_1(B); u_1(A); u_1(B) \\ T_2 = l_2(C); r_2(C); l_2(A); w_2(A); u_2(C); u_2(A) \\ T_3 = l_3(B); r_3(B); l_3(C); w_3(C); u_3(B); u_3(C) \\ T_4 = l_4(D); r_4(D); l_4(A); w_4(A); u_4(D); u_4(A) \\ $ Se pide:
 
 ### (a) Transformar las mismas a un modelo de locks ternario
 
@@ -776,7 +779,7 @@ $T_4 = rl_4(D); r_4(D); wl_4(A); w_4(A); u_4(D); u_4(A)$
 - Si $T_1$ adquirió el lock de lectura sobre $A$ antes de que $T_2$ llegue a ejecutar el $wl_2(A)$, entonces $T_2$ se queda trabada.
 - Si $T_1$ adquirió el lock de lectura sobre $A$ antes de que $T_4$ ejecute $wl_4(A)$, entonces $T_4$ se queda trabada.
 
-$H=rl_1(A); r_1(A);rl_2(C); r_2(C);rl_3(B); r_3(B);rl_4(D); r_4(D);wl_1(B)~denegado~;wl_2(A)~denegado~;wl_3(C)~denegado~;wl_4(A)~denegado~$
+$H=rl_1(A); r_1(A);rl_2(C); r_2(C);rl_3(B); r_3(B);rl_4(D); r_4(D);wl_1(B) \text{denegado};wl_2(A) \text{denegado};wl_3(C) \text{denegado};wl_4(A) \text{denegado}$
 
 ### (c) Realizar el grafo *wait-for*
 
