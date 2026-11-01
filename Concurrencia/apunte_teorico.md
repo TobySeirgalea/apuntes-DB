@@ -272,7 +272,7 @@ Si $T_i$ quiere realizar un lock sobre un item y no puede porque $T_j$ ya tiene 
 
 ### Timestamping
 
-- Cada transacción $T$ tiene un *timestamp* $TS(T)$ asociado. $TS(...)$ debe dar un <ins>orden total ($\lt$)</ins>.
+- Cada transacción $T$ tiene un *timestamp* $TS(T)$ asociado. $TS(...)$ debe dar un <ins>orden total (<)</ins>.
 - Se asume que el orden en que llegan las transacciones es el orden serial en el que debe parecer que se ejecutan.
 
 #### Estructuras necesarias
@@ -322,8 +322,9 @@ El *scheduler* para garantizar que solo ocurran **comportamientos físicamente r
   - Si $TS(T) \geq WT(X)$ *lectura es físicamente realizable*.
     - Si $C(X) == 1$, entonces que lea y ponemos $RT(X) := TS(T)$.
     - Sino, retrasar $T$ hasta que $C(X) == 1$ o la que escribe $X$ aborte (ya que ese valor iba a leer $T$).
+  - Si $TS(T) \lt WT(X)$ [*read too late*](#comportamiento-físicamente-irrealizable) se hace **rollback**, es decir se aborta e reinicia con nuevo *timestamp*.
 - $T$ quiere escribir $X$:
-  - Si $TS(T) \geq RT(X) \land TS(T) \geq RT(X)$, *escritura es físicamente realizable*.
+  - Si $TS(T) \geq RT(X) \land TS(T) \geq WT(X)$, *escritura es físicamente realizable*.
     - Escribimos valor en $X$.
     - Ponemos $T$ como última escritora de $X$, $WT(X) = TS(T)$.
     - Ponemos *commit bit* en false, porque aún no commiteamos, $C(X) := 0$.

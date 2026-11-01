@@ -1085,7 +1085,7 @@ $T_2$ bloquea a $T_1$ que bloquea a $T_3$ que bloquea a $T_2$. $\therefore$ *dea
 |$26$|$u_3(C)$   |$T_3$                  |                                                                                                                |
 |$27$|$u_3(A)$   |$T_3$                  |Termina $T_3$                                                                                                   |
 
-**Para $H_3#**:
+**Para $H_3$**:
 
 |t   |Operación  |Timestamp order ($\lt$)|Observación                                                                                                     |
 |:--:|:---------:|:---------------------:|:--------------------------------------------------------------------------------------------------------------:|
@@ -1152,7 +1152,7 @@ $T_2$ bloquea a $T_1$ que bloquea a $T_3$ que bloquea a $T_2$. $\therefore$ *dea
 |$21$|$wl_2(C)$   |$T_2;T_3;T_4$          |Ahora $T_2$ si puede tomar el recurso que tenía $T_1$                                                                                |
 |$22$|$w_2(C)$    |$T_2;T_3;T_4$          |                                                                                                                                     |
 |$23$|¿$wl_3(B)$? |$T_2;T_3;T_4$          |Vuelve a intentar $T_3$ pero $T_2$ que es más vieja aún no lo liberó, por lo que dejamos a $T_3$ esperando                           |
-|$24$|¿$wl_4(A)?  |$T_2;T_3;T_4$          |Vuelve a intentar $T_4$ pero $T_1$ ya terminó y el recurso $A$ quedó libre, así que puede continuar                                  |
+|$24$|¿$wl_4(A)$?  |$T_2;T_3;T_4$          |Vuelve a intentar $T_4$ pero $T_1$ ya terminó y el recurso $A$ quedó libre, así que puede continuar                                 |
 |$25$|$w_4(A)$    |$T_2;T_3;T_4$          |                                                                                                                                     |
 |$26$|$u_2(B)$    |$T_2;T_3;T_4$          |                                                                                                                                     |
 |$27$|$u_2(C)$    |$T_2;T_3;T_4$          |Termina $T_2$                                                                                                                        |
@@ -1241,6 +1241,52 @@ $T_2$ bloquea a $T_1$ que bloquea a $T_3$ que bloquea a $T_2$. $\therefore$ *dea
   - Son las únicas lecturas entre transacciones, y todas las que leen hacen commit después de aquella de la que leyeron, así que es **RC**.
 - **$s$ es ACA**
   - No porque $T_2$ lee $C$ de $T_3$ y $rl_2(C) \lt c_3$. Es decir lee de una que aún no había commiteado, así que no es **ACA**.
+
+## Ejercicio 4.1
+
+> Detallar que ocurre en las siguientes secuencias, el orden es el orden temporal en el que ocurren los eventos si: $\\ H_1=st_1;st_2;r_1(A);r_2(B);w_2(A);w_1(B) \\ H_2 = st_1;r_1(A);st_2;r_2(B);r_2(A);w_1(B) \\ H_3=st_1;st_2;st_3;r_1(A);r_2(B);w_1(C);r_3(C);w_2(B);w_3(B)\\$
+
+### (a) El planificador usa *timestamping* y no es multiversión
+
+Estamos en caso de *timestamping monoversión*.
+
+$H_1=st_1;st_2;r_1(A);r_2(B);w_2(A);w_1(B)$
+
+|tiempo|$T_1$   |$T_2$   | A   |B    |RT(A)|RT(B)|WT(A)|WT(B)|Observaciones                                                                                                                                                                                      |
+|:----:|:------:|:------:|:---:|:---:|:---:|:---:|:---:|:---:|:--------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------|
+|0     |$st_1$  |        |     |     |     |     |     |     |                                                                                                                                                                                                   |
+|1     |        |$st_2$  |     |     |     |     |     |     |                                                                                                                                                                                                   |
+|2     |$r_1(A)$|        |     |     |0    |     |     |     |Quiere leer $A$. Como nadie leyó todavía, vale que $TS(T_1) \geq WT(A)$ así que es realizable. Ponemos $RT(A) = TS(T_1)$. $C(X)==1$ porque es la primer lectura, así que las anteriores terminaron |
+|3     |        |$r_2(B)$|     |     |     |1    |     |     |Quiere leer $B$. Nadie lo leyó aún, entonces vale que $TS(T_1) \geq WT(A)$, por lo que es realizable. Hacemos $RT(A)=TS(T_1)$                                                                      |
+|4     |        |$w_2(A)$|     |     |     |     | 1   |     |Quiere escribir $A$. $1=TS(T_2) \lt RT(A) = 0$ entonces $T_2$ debe hacer **rollback**                                                                                                              |
+|5     |$w_1(B)$|        |$A_1$|     |     |     |     |     |Quiere escribir $B$. $0 =TS(T_1) \geq RT(B) = TS(T_1)$ y $0 = TS(T_1) \geq WT(B) = -1$ ya que nadie lo escribió antes, así que se puede realizar la lectura. $WT(B):=TS(T_1)$, $C(B):=0$.          |
+
+$H_2 = st_1;r_1(A);st_2;r_2(B);r_2(A);w_1(B)$
+
+|tiempo|$T_1$   |$T_2$   | A   |B    |RT(A)|RT(B)|WT(A)|WT(B)|Observaciones                                                                                                                                                                                                                  |
+|:----:|:------:|:------:|:---:|:---:|:---:|:---:|:---:|:---:|:------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------|
+|0     |$st_1$  |        |     |     |     |     |     |     |                                                                                                                                                                                                                               |
+|1     |$r_1(A)$|        |     |     |0    |     |     |     |Quiere leer $A$. Nadie lo leyó todavía $0=TS(T_1) \geq WT(A)=-1$. $C(A)=1$ porque el valor ya está escrito. Lee correctamente.                                                                                                 |
+|2     |        |$st_2$  |     |     |     |     |     |     |                                                                                                                                                                                                                               |
+|3     |        |$r_2(B)$|     |     |     |2    |     |     |Quiere leer $B$. Nadie lo leyó aún, entonces vale que $TS(T_1) \geq WT(A)$, por lo que es realizable. Hacemos $RT(A)=TS(T_1)$. $C(X)==1$ porque es la primer lectura, así que las anteriores terminaron                        |
+|4     |        |$r_2(A)$|     |     |     |     |     |     |Quiere leer $A$. $2=TS(T_2) \geq WT(A) = -1$ , por lo que es realizable. Hacemos $RT(A)=TS(T_1)$. $C(X)==1$ porque es la primer lectura, así que las anteriores terminaron                                                     |
+|5     |$w_1(B)$|        |$A_1$|     |     |     |     |     |Quiere escribir $B$. $0 =TS(T_1) \lt RT(B) = TS(T_2)=2$ por lo que quiere escribir un item que $T_2$ que es una transacción posterior ya leyó con otro valor, así que debe hacer **rollback** e reiniciar con nuevo *timestamp*|
+
+$H_3=st_1;st_2;st_3;r_1(A);r_2(B);w_1(C);r_3(C);w_2(B);w_3(B)$
+
+|tiempo|$T_1$   |$T_2$   |$T_3$   | A   |B    |C    |RT(A)|RT(B)|RT(C)|WT(A)|WT(B)|WT(C)|Observaciones                                                                                                                     |
+|:----:|:------:|:------:|:------:|:---:|:---:|:---:|:---:|:---:|:---:|:---:|:---:|:---:|:--------------------------------------------------------------------------------------------------------------------------------:|
+|0     |$st_1$  |        |        |     |     |     |     |     |     |     |     |     |                                                                                                                                  |
+|1     |        |$st_2$  |        |     |     |     |     |     |     |     |     |     |                                                                                                                                  |
+|2     |        |        |$st_3$  |     |     |     |     |     |     |     |     |     |                                                                                                                                  |
+|3     |$r_1(A)$|        |        |     |     |     |0    |     |     |     |     |     |$0=TS(T_1) \geq WT(A) = -1$ por no ser escrito. Porque el valor de $A$ ya fue escrito $C(A)==1$, entonces hacemos $RT(A):=TS(T_1)$|
+|4     |        |$r_2(B)$|        |     |     |     |     |1    |     |     |     |     |$1=TS(T_2) \geq WT(B) = -1$ por no ser escrito. Porque el valor de $B$ ya fue escrito $C(B)==1$, entonces hacemos $RT(B):=TS(T_2)$|
+|5     |$w_1(C)$|        |        |     |     |1    |     |     |     |     |     |0    |$1=TS(T_1) \geq RT(C) = -1$ y $TS(T_1) \geq WT(C) = -1$, ya que nadie leyó $C$ aún ni lo escribió. Así que se realiza la escritura|
+|6     |        |        |$r_3(C)$|     |     |     |     |     |2    |     |     |     |$2=TS(T_3) \geq WT(C) = 0$, así que es *realizable*. $T_1$ no terminó, así que $C(C) == 0$, por lo que se **retrasa la lectura**. |
+|7     |        |$w_2(B)$|        |     |2    |     |     |     |     |     |1    |     |$1=TS(T_2) \geq RT(B) = 1$ y $TS(T_2) \geq WT(B) = -1$, entonces escribimos. $C(B):=0$ y $WT(B) = TS(T_2)$                        |
+|8     |        |        |$w_3(C)$|     |     |3    |     |     |     |     |     |2    |$2=TS(T_3) \geq RT(C) = 2$ y $TS(T_3) \geq WT(C) = 0$, entonces es *realizable*. $C(C):=0$                                        |
+
+### (b) El planificador usa multiversión y protocolo **MVTO**
 
 [1] [A Critique of ANSI SQL Isolation Levels](https://arxiv.org/pdf/cs/0701157)
 
