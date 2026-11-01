@@ -443,7 +443,7 @@ Los posibles protocolos son:
 - Lecturas nunca se rechazan.
 - En caso de lecturas $r_i(X)$ pasamos a tener $r_i(X_k)$ con $X_k$ versión leída, que debe cumplir $TS(T_k) \lt TS(T_i)$, es decir *ser previa*.
 - En caso de escrituras $w_i(X)$:
-  - Si $r_j(x_k)$ tal que $$ ya existe en el *schedule*, entonces rechazamos $w_i(X)$ y abortamos $T_i$ por [*write too late*](#comportamiento-físicamente-irrealizable). Es decir, *si una transacción posterior ya leyó valor escrito por una previa a nosotros, nos abortan*.
+  - Si $r_j(x_k)$ tal que $TS(T_k) \lt TS(T_i) \lt TS(T_j)$ ya existe en el *schedule*, entonces rechazamos $w_i(X)$ y abortamos $T_i$ por [*write too late*](#comportamiento-físicamente-irrealizable). Es decir, *si una transacción posterior ya leyó valor escrito por una previa a nosotros, nos abortan*.
   - Sino transformamos $w_i(X)$ en $w_i(X_i)$ y la ejecutamos. Es decir, *creamos nueva versión*.
 - En *commits* $c_i$, lo retrasamos hasta que todas las transacciones $t_j$ que escribieron nuevas versiones de lo que leyó $t_i$ commiteen. (Evita [*dirty reads*](#dirty-reads))
 

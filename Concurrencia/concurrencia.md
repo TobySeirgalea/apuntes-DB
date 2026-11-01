@@ -1251,7 +1251,8 @@ $T_2$ bloquea a $T_1$ que bloquea a $T_3$ que bloquea a $T_2$. $\therefore$ *dea
 
 ### (a) El planificador usa *timestamping* y no es multiversión
 
-Estamos en caso de *timestamping monoversión*.
+- Estamos en caso de *timestamping monoversión*.
+- Como no se aclara qué valor escribe cada $w_i(X)$ asumo que escribe el número de su transacción. $w_i(X) \equiv X:=i$.
 
 $H_1=st_1;st_2;r_1(A);r_2(B);w_2(A);w_1(B)$
 
@@ -1290,6 +1291,23 @@ $H_3=st_1;st_2;st_3;r_1(A);r_2(B);w_1(C);r_3(C);w_2(B);w_3(B)$
 |8     |        |        |$w_3(C)$|     |     |3    |     |     |     |     |     |2    |$2=TS(T_3) \geq RT(C) = 2$ y $TS(T_3) \geq WT(C) = 0$, entonces es *realizable*. $C(C):=0$                                        |
 
 ### (b) El planificador usa multiversión y protocolo **MVTO**
+
+**Para $H_1$**:
+
+![MVTO para H_1](./images/ej4.1h1.drawio.svg)
+
+Luego de que $T_1$ termina, podríamos reintentar $T_2$ y ya no habría conflictos.
+
+**Para $H_2$**:
+
+![MVTO para H_2](./images/ej4.1h2.drawio.svg)
+
+>[!IMPORTANT]
+> En este caso no nos dan los commits en las historias, si $T_2$ hiciera commit antes que $T_1$ escriba $B$ no debería abortar no?
+
+**Para $H_3$**:
+
+![MVTO para H_3](./images/ej4.1h3.drawio.svg)
 
 [1] [A Critique of ANSI SQL Isolation Levels](https://arxiv.org/pdf/cs/0701157)
 
