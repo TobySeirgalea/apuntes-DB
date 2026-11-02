@@ -304,9 +304,12 @@ Si una transacción $T$ escribe ítem $X$ y luego aborta, entonces se pone C(X) 
   - $TS(T) \lt WT(X)$, $T quiere leer $X$ pero su valor ya lo pisó otra transacción posterior a $T$.
 - *write too late*:
   - $WT(X) \lt TS(T) \lt RT(X)$, una transacción posterior a $T$ ya leyó $X$ y en $X$ está el valor previo a la ejecución de $T$, por lo que si $T$ tenía que escribir llegó tarde.
-- *Thomas write rule*:
-  - Si una transacción posterior $U$ a vos (transacción $T$) ya escribió su valor en un item que tenés que escribir, no hace falta que escribas.
-  - ¿Y los que tenían que leer el valor que yo ($T$) iba a escribir en ese item?: Si alguien tiene que leer el valor que vos escribirías y no el de $U$, entonces esa transacción iría después que $T$ y antes que $U$, pero al leer el item que ya fue escrito por $U$ que es posterior a ella, habría sido abortada, por lo que no leyó el valor de $U$.
+
+#### *Thomas write rule*
+
+- Es una optimización para reducir la cantidad de *aborts*.
+- Si una transacción posterior $U$ a vos (transacción $T$) ya escribió su valor en un item que tenés que escribir, no hace falta que escribas.
+- ¿Y los que tenían que leer el valor que yo ($T$) iba a escribir en ese item?: Si alguien tiene que leer el valor que vos escribirías y no el de $U$, entonces esa transacción iría después que $T$ y antes que $U$, pero al leer el item que ya fue escrito por $U$ que es posterior a ella, habría sido abortada, por lo que no leyó el valor de $U$.
 
 #### Operaciones del *scheduler*
 
@@ -356,6 +359,9 @@ Si hay muchos conflictos conviene *locking*.
 - Asumiendo que cada transacción escribe un ítem solo una vez, denotamos a la versión creada por $w_i(X)$ como $X_i$.
 - Cliente no se entera de que hay versiones ni nada.
 - Hay *garbage collector* de versiones.
+
+>[!IMPORTANT]
+> Al tener versiones de los items ahorramos los aborts por [*read too late*](#comportamiento-físicamente-irrealizable), ya que una transacción posterior $J$ nunca puede pisar el valor previo de una versión, así que si otra transacción $I$, previa a $J$, necesitaba leer una versión previo a la escritura de $J$ le podemos dar esa versión y listo.
 
 #### Función de versión
 
