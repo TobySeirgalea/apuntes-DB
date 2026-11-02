@@ -1317,23 +1317,23 @@ Luego de que $T_1$ termina, podríamos reintentar $T_2$ y ya no habría conflict
 
 ### (a) Decir que pasa en cada acción y que valores quedan en X;Y;Z si el planificador no usa multiversión
 
-|tiempo|$T_1$   |$T_2$   |$T_3$   |$T_4$   | X   |Y    |Z    |RT(X)|RT(Y)|RT(Z)|WT(X)|WT(Y)|WT(Z)|C(X) |C(Y) |C(Z) |Observaciones                                                                                                                     |
-|:----:|:------:|:------:|:------:|:------:|:---:|:---:|:---:|:---:|:---:|:---:|:---:|:---:|:---:|:---:|:---:|:---:|:---------------------------------------------------------------------------------------------------------------------------------|
-|0     |$st_1$  |        |        |        |0    |0    |0    |-1   |-1   |-1   |-1   |-1   |-1   |0    |0    |0    |
-|1     |        |$st_2$  |        |        |     |     |     |     |     |     |     |     |     |     |     |     |
-|2     |        |$r_2(X)$|        |        |     |     |     |1    |     |     |     |     |     |     |     |     |
-|3     |        |        |$st_3$  |        |     |     |     |     |     |     |     |     |     |     |     |     |
-|4     |        |        |        |$st_4$  |     |     |     |     |     |     |     |     |     |     |     |     |
-|5     |$r_1(Y)$|        |        |        |     |     |     |     |0    |     |     |     |     |     |     |     |
-|6     |        |        |        |$r_4(Z)$|     |     |     |     |     |4    |     |     |     |     |     |     |
-|7     |        |        |$w_3(X)$|        |3    |     |     |     |     |     |3    |     |     |     |     |     |$3 = TS(T_3) \geq RT(X) = 1$ ✅, $3 = TS(T_3) \geq WT(X) = 1$ ✅  $\therefore$ escribe.|
-|8     |        |        |$w_3(Y)$|        |     |30   |     |     |     |     |     |3    |     |     |     |     |$3 = TS(T_3) \geq RT(Y) = 0$ ✅, $3 = TS(T_3) \geq WT(Y) = 3$ ✅  $\therefore$ escribe.|
-|9     |        |        |        |$w_4(Z)$|     |     |4    |     |     |     |     |     |4    |     |     |     |$4 = TS(T_4) \geq RT(Z) = 4$ ✅, $4 = TS(T_4) \geq WT(Z) = -1$ ✅  $\therefore$ escribe.|
-|10    |        |$w_2(X)$|        |        |     |     |     |     |     |     |     |     |     |     |     |     |⏸️Esperas hasta que $T_3$ commitee. Si lo hace no escribís, sino escribís.|
-|11    |$w_1(Y)$|        |        |        |     |     |     |     |     |     |     |     |     |     |     |     |⏸️Espera a $T_3$ termine. Si commitea no escribe, si aborta escribe.|
-|12    |        |        |$r_3(Z)$|        |     |     |4    |     |     |     |     |     |     |     |     |     |Read too late. $T_3$ quiere leer después de que uno posterior ya escribió. 🔁**Rollback** $T_3$.|
-|13    |        |$w_2(X)$|        |        |2    |     |     |     |     |     |1    |     |     |     |     |     |Como $T_3$ abortó. $T_2$ puede escribir $X$.|
-|14    |$w_1(Y)$|        |        |        |     |1    |     |     |     |     |     |1    |     |     |     |     |Como $T_3$ abortó. $T_1$ puede escribir $Y$.|
+|tiempo|$T_1$   |$T_2$   |$T_3$   |$T_4$   | X   |Y    |Z    |RT(X)|RT(Y)|RT(Z)|WT(X)|WT(Y)|WT(Z)|C(X) |C(Y) |C(Z) |Observaciones                                                                                    |
+|:----:|:------:|:------:|:------:|:------:|:---:|:---:|:---:|:---:|:---:|:---:|:---:|:---:|:---:|:---:|:---:|:---:|:------------------------------------------------------------------------------------------------|
+|0     |$st_1$  |        |        |        |0    |0    |0    |-1   |-1   |-1   |-1   |-1   |-1   |1    | 1   |1    |                                                                                                 |
+|1     |        |$st_2$  |        |        |     |     |     |     |     |     |     |     |     |     |     |     |                                                                                                 |
+|2     |        |$r_2(X)$|        |        |     |     |     |1    |     |     |     |     |     |     |     |     |                                                                                                 |
+|3     |        |        |$st_3$  |        |     |     |     |     |     |     |     |     |     |     |     |     |                                                                                                 |
+|4     |        |        |        |$st_4$  |     |     |     |     |     |     |     |     |     |     |     |     |                                                                                                 |
+|5     |$r_1(Y)$|        |        |        |     |     |     |     |0    |     |     |     |     |     |     |     |                                                                                                 |
+|6     |        |        |        |$r_4(Z)$|     |     |     |     |     |4    |     |     |     |     |     |     |                                                                                                 |
+|7     |        |        |$w_3(X)$|        |3    |     |     |     |     |     |3    |     |     |     |     |     |$3 = TS(T_3) \geq RT(X) = 1$ ✅, $3 = TS(T_3) \geq WT(X) = 1$ ✅  $\therefore$ escribe.          |
+|8     |        |        |$w_3(Y)$|        |     |30   |     |     |     |     |     |3    |     |     |     |     |$3 = TS(T_3) \geq RT(Y) = 0$ ✅, $3 = TS(T_3) \geq WT(Y) = 3$ ✅  $\therefore$ escribe.          |
+|9     |        |        |        |$w_4(Z)$|     |     |4    |     |     |     |     |     |4    |     |     |     |$4 = TS(T_4) \geq RT(Z) = 4$ ✅, $4 = TS(T_4) \geq WT(Z) = -1$ ✅  $\therefore$ escribe.         |
+|10    |        |$w_2(X)$|        |        |     |     |     |     |     |     |     |     |     |     |     |     |⏸️Esperas hasta que $T_3$ commitee. Si lo hace no escribís, sino escribís.                       |
+|11    |$w_1(Y)$|        |        |        |     |     |     |     |     |     |     |     |     |     |     |     |⏸️Espera a $T_3$ termine. Si commitea no escribe, si aborta escribe.                             |
+|12    |        |        |$r_3(Z)$|        |     |     |4    |     |     |     |     |     |     |     |     |     |Read too late. $T_3$ quiere leer después de que uno posterior ya escribió. 🔁**Rollback** $T_3$. |
+|13    |        |$w_2(X)$|        |        |2    |     |     |     |     |     |1    |     |     |     |     |     |Como $T_3$ abortó. $T_2$ puede escribir $X$.                                                     |
+|14    |$w_1(Y)$|        |        |        |     |1    |     |     |     |     |     |1    |     |     |     |     |Como $T_3$ abortó. $T_1$ puede escribir $Y$.                                                     |
 
 Los valores finales son $X = 2; Y = 1; Z = 4$.
 
@@ -1374,16 +1374,16 @@ Comportamientos físicamente irrealizables serían: *read too late*, *write too 
 
 **Secuencia 1**:
 
-|tiempo|$T_1$   |$T_2$   |$T_3$   |$A$|$B$|$C$|$RT(A)$|$RT(B)$|$RT(C)$|$WT(A)$|$WT(B)$|$WT(C)$|$C(A)$|$C(B)$|$C(C)$|Observaciones|
-|:----:|:------:|:------:|:------:|:-:|:-:|:-:|:-----:|:-----:|:-----:|:-----:|:-----:|:-----:|:----:|:----:|:----:|:------------|
-|      |        |        |        |   |   |   |-1     |-1     |-1     |-1     |-1     |-1     |0     |0     |0     |             |
-|...   |...     |...     |...     |...|...|...|...    |...    |...    |...    |...    |...    |...   |...   |...   |             |
-|$t_1$ |$r_1(A)$|        |        |   |   |   | $t_1$ |       |       |       |       |       |      |      |      |             |
-|$t_2$ |        |$r_2(B)$|        |   |   |   |       |$t_2$  |       |       |       |       |      |      |      |             |
-|$t_3$ |$w_1(A)$|        |        |1  |   |   |       |       |       |$t_3$  |       |       |      |      |      |             |
-|$t_4$ |        |        |$r_3(A)$|   |   |   | $t_4$ |       |       |       |       |       |      |      |      |             |
-|$t_5$ |        |        |$w_3(A)$|3  |   |   |       |       |       |$t_5$  |       |       |      |      |      |             |
-|$t_6$ |        |$w_2(A)$|        |2  |   |   |       |       |       |$t_6$  |       |       |      |      |      |             |
+|tiempo|$T_1$   |$T_2$   |$T_3$   |$A$|$B$|$C$|$RT(A)$|$RT(B)$|$RT(C)$|$WT(A)$|$WT(B)$|$WT(C)$|$C(A)$|$C(B)$|$C(C)$|
+|:----:|:------:|:------:|:------:|:-:|:-:|:-:|:-----:|:-----:|:-----:|:-----:|:-----:|:-----:|:----:|:----:|:----:|
+|      |        |        |        |   |   |   |-1     |-1     |-1     |-1     |-1     |-1     |1     |1     |1     |
+|...   |...     |...     |...     |...|...|...|...    |...    |...    |...    |...    |...    |...   |...   |...   |
+|$t_1$ |$r_1(A)$|        |        |   |   |   | $t_1$ |       |       |       |       |       |      |      |      |
+|$t_2$ |        |$r_2(B)$|        |   |   |   |       |$t_2$  |       |       |       |       |      |      |      |
+|$t_3$ |$w_1(A)$|        |        |1  |   |   |       |       |       |$t_3$  |       |       |      |      |      |
+|$t_4$ |        |        |$r_3(A)$|   |   |   | $t_4$ |       |       |       |       |       |      |      |      |
+|$t_5$ |        |        |$w_3(A)$|3  |   |   |       |       |       |$t_5$  |       |       |      |      |      |
+|$t_6$ |        |$w_2(A)$|        |2  |   |   |       |       |       |$t_6$  |       |       |      |      |      |
 
 - Para $r_1(A)$ necesitamos $TS(T_1) = t_1 \geq WT(A) = -1$.
   - No impone restricciones.
@@ -1412,7 +1412,7 @@ Tabla final:
 
 |tiempo|$T_1$   |$T_2$   |$T_3$   |$A$|$B$|$C$|$RT(A)$|$RT(B)$|$RT(C)$|$WT(A)$|$WT(B)$|$WT(C)$|$C(A)$|$C(B)$|$C(C)$|
 |:----:|:------:|:------:|:------:|:-:|:-:|:-:|:-----:|:-----:|:-----:|:-----:|:-----:|:-----:|:----:|:----:|:----:|
-|      |        |        |        |   |   |   |-1     |-1     |-1     |-1     |-1     |-1     |0     |0     |0     |
+|      |        |        |        |   |   |   |-1     |-1     |-1     |-1     |-1     |-1     |1     |1     |1     |
 |0     |$st_1$  |        |        |   |   |   |       |       |       |       |       |       |      |      |      |
 |1     |        |        |$st_3$  |   |   |   |       |       |       |       |       |       |      |      |      |
 |2     |        |$st_2$  |        |   |   |   |       |       |       |       |       |       |      |      |      |
@@ -1425,18 +1425,18 @@ Tabla final:
 
 **Secuencia 2**:
 
-|tiempo|$T_1$   |$T_2$   |$T_3$   |$A$|$B$|$C$|$RT(A)$  |$RT(B)$  |$RT(C)$  |$WT(A)$  |$WT(B)$  |$WT(C)$|$C(A)$|$C(B)$|$C(C)$|Observaciones|
-|:----:|:------:|:------:|:------:|:-:|:-:|:-:|:-------:|:-------:|:-------:|:-------:|:-------:|:-----:|:----:|:----:|:----:|:------------|
-|      |        |        |        |   |   |   |-1       |-1       |-1       |-1       |-1       |-1     |0     |0     |0     |             |
-|...   |...     |...     |...     |...|...|...|...      |...      |...      |...      |...      |...    |...   |...   |...   |             |
-|$t_1$ |$r_1(A)$|        |        |   |   |   |$TS(T_1)$|         |         |         |         |       |      |      |      |             |
-|$t_2$ |        |        |$r_3(C)$|   |   |   |         |         |$TS(T_3)$|         |         |       |      |      |      |             |
-|$t_3$ |        |$r_2(C)$|        |   |   |   |         |         |$TS(T_2)$|         |         |       |      |      |      |             |
-|$t_4$ |        |        |$w_3(A)$|3  |   |   |         |         |         |$TS(T_3)$|         |       |      |      |      |             |
-|$t_5$ |        |$r_2(B)$|        |   |   |   |         |$TS(T_2)$|         |         |         |       |      |      |      |             |
-|$t_6$ |        |        |$r_3(B)$|   |   |   |         |$TS(T_3)$|         |         |         |       |      |      |      |             |
-|$t_7$ |        |$w_2(B)$|        |   |2  |   |         |         |         |         |$TS(T_2)$|       |      |      |      |             |
-|$t_8$ |        |$w_2(A)$|        |2  |   |   |         |         |         |$TS(T_2)$|         |       |      |      |      |             |
+|tiempo|$T_1$   |$T_2$   |$T_3$   |$A$|$B$|$C$|$RT(A)$  |$RT(B)$  |$RT(C)$  |$WT(A)$  |$WT(B)$  |$WT(C)$|$C(A)$|$C(B)$|$C(C)$|
+|:----:|:------:|:------:|:------:|:-:|:-:|:-:|:-------:|:-------:|:-------:|:-------:|:-------:|:-----:|:----:|:----:|:----:|
+|      |        |        |        |   |   |   |-1       |-1       |-1       |-1       |-1       |-1     |1     |1     |1     |
+|...   |...     |...     |...     |...|...|...|...      |...      |...      |...      |...      |...    |...   |...   |...   |
+|$t_1$ |$r_1(A)$|        |        |   |   |   |$TS(T_1)$|         |         |         |         |       |      |      |      |
+|$t_2$ |        |        |$r_3(C)$|   |   |   |         |         |$TS(T_3)$|         |         |       |      |      |      |
+|$t_3$ |        |$r_2(C)$|        |   |   |   |         |         |$TS(T_2)$|         |         |       |      |      |      |
+|$t_4$ |        |        |$w_3(A)$|3  |   |   |         |         |         |$TS(T_3)$|         |       |      |      |      |
+|$t_5$ |        |$r_2(B)$|        |   |   |   |         |$TS(T_2)$|         |         |         |       |      |      |      |
+|$t_6$ |        |        |$r_3(B)$|   |   |   |         |$TS(T_3)$|         |         |         |       |      |      |      |
+|$t_7$ |        |$w_2(B)$|        |   |2  |   |         |         |         |         |$TS(T_2)$|       |      |      |      |
+|$t_8$ |        |$w_2(A)$|        |2  |   |   |         |         |         |$TS(T_2)$|         |       |      |      |      |
 
 - $r_1(A)$ No impone restricciones pues $TS(T_1) \geq WT(A) = -1$.
 - $r_3(C)$ No impone restricciones pues $TS(T_3) \geq WT(C) = -1$.
@@ -1449,24 +1449,136 @@ Tabla final:
 
 Finalmente requerimos para que no haya **rollbacks** que el orden cumpla $TS(T_3) \geq TS(T_1) \land TS(T_2) \geq TS(T_3) \land TS(T_2) \geq TS(T_1)$. Por lo que ponemos primero a $st_1$, luego a $st_3$ y finalmente a $st_2$ resultando en la siguiente tabla:
 
-|tiempo|$T_1$   |$T_2$   |$T_3$   |$A$|$B$|$C$|$RT(A)$  |$RT(B)$  |$RT(C)$  |$WT(A)$  |$WT(B)$  |$WT(C)$|$C(A)$|$C(B)$|$C(C)$|Observaciones|
-|:----:|:------:|:------:|:------:|:-:|:-:|:-:|:-------:|:-------:|:-------:|:-------:|:-------:|:-----:|:----:|:----:|:----:|:------------|
-|      |        |        |        |   |   |   |-1       |-1       |-1       |-1       |-1       |-1     |0     |0     |0     |             |
-|0     |$st_1$  |        |        |   |   |   |         |         |         |         |         |       |      |      |      |             |
-|1     |        |        |$st_3$  |   |   |   |         |         |         |         |         |       |      |      |      |             |
-|2     |        |$st_2$  |        |   |   |   |         |         |         |         |         |       |      |      |      |             |
-|3     |$r_1(A)$|        |        |   |   |   |$TS(T_1)$|         |         |         |         |       |      |      |      |             |
-|4     |        |        |$r_3(C)$|   |   |   |         |         |$TS(T_3)$|         |         |       |      |      |      |             |
-|5     |        |$r_2(C)$|        |   |   |   |         |         |$TS(T_2)$|         |         |       |      |      |      |             |
-|6     |        |        |$w_3(A)$|3  |   |   |         |         |         |$TS(T_3)$|         |       |      |      |      |             |
-|7     |        |$r_2(B)$|        |   |   |   |         |$TS(T_2)$|         |         |         |       |      |      |      |             |
-|8     |        |        |$r_3(B)$|   |   |   |         |$TS(T_3)$|         |         |         |       |      |      |      |             |
-|9     |        |$w_2(B)$|        |   |2  |   |         |         |         |         |$TS(T_2)$|       |      |      |      |             |
-|10    |        |$w_2(A)$|        |2  |   |   |         |         |         |$TS(T_2)$|         |       |      |      |      |             |
+|tiempo|$T_1$   |$T_2$   |$T_3$   |$A$|$B$|$C$|$RT(A)$  |$RT(B)$  |$RT(C)$  |$WT(A)$  |$WT(B)$  |$WT(C)$|$C(A)$|$C(B)$|$C(C)$|
+|:----:|:------:|:------:|:------:|:-:|:-:|:-:|:-------:|:-------:|:-------:|:-------:|:-------:|:-----:|:----:|:----:|:----:|
+|      |        |        |        |   |   |   |-1       |-1       |-1       |-1       |-1       |-1     |1     |1     |1     |
+|0     |$st_1$  |        |        |   |   |   |         |         |         |         |         |       |      |      |      |
+|1     |        |        |$st_3$  |   |   |   |         |         |         |         |         |       |      |      |      |
+|2     |        |$st_2$  |        |   |   |   |         |         |         |         |         |       |      |      |      |
+|3     |$r_1(A)$|        |        |   |   |   |$TS(T_1)$|         |         |         |         |       |      |      |      |
+|4     |        |        |$r_3(C)$|   |   |   |         |         |$TS(T_3)$|         |         |       |      |      |      |
+|5     |        |$r_2(C)$|        |   |   |   |         |         |$TS(T_2)$|         |         |       |      |      |      |
+|6     |        |        |$w_3(A)$|3  |   |   |         |         |         |$TS(T_3)$|         |       |      |      |      |
+|7     |        |$r_2(B)$|        |   |   |   |         |$TS(T_2)$|         |         |         |       |      |      |      |
+|8     |        |        |$r_3(B)$|   |   |   |         |$TS(T_3)$|         |         |         |       |      |      |      |
+|9     |        |$w_2(B)$|        |   |2  |   |         |         |         |         |$TS(T_2)$|       |      |      |      |
+|10    |        |$w_2(A)$|        |2  |   |   |         |         |         |$TS(T_2)$|         |       |      |      |      |
 
 ## Ejercicio 4.5
 
+> Dadas las siguientes historias:
+> $ \\ H_1 = st_2; r_2(Z); r_2(Y); w_2(Y); st_3; r_3(Y); r_3(Z); st_1; r_1(X); w_1(X); w_3(Y); w_3(Z);r_2(X); r_1(Y); w_1(Y); w_1(X) \\ H_2 = st_3; r_3(Y); r_3(Z); st_1; r_1(X); w_1(X); w_3(Y); w_3(Z); st_2; r_2(Z); r_1(Y); w_1(Y);r_2(Y); w_2(Y); r_2(X); w_2(X) \\ $ Se pide:
 
+### (a) Verificar segun un planificador basado en timestamp si las historias son permitidas o no
+
+$H_1 = st_2; r_2(Z); r_2(Y); w_2(Y); st_3; r_3(Y); r_3(Z); st_1; r_1(X); w_1(X); w_3(Y); w_3(Z);r_2(X); r_1(Y); w_1(Y); w_1(X)$
+
+|tiempo|$T_1$   |$T_2$   |$T_3$   |$X$|$Y$|$Z$|$RT(X)$  |$RT(Y)$  |$RT(Z)$  |$WT(X)$  |$WT(Y)$  |$WT(Z)$|$C(X)$|$C(Y)$|$C(Z)$|Observaciones                                                                                   |
+|:----:|:------:|:------:|:------:|:-:|:-:|:-:|:-------:|:-------:|:-------:|:-------:|:-------:|:-----:|:----:|:----:|:----:|:-----------------------------------------------------------------------------------------------|
+|      |        |        |        |   |   |   |-1       |-1       |-1       |-1       |-1       |-1     |1     |1     |1     |                                                                                                |
+|0     |        |$st_2$  |        |   |   |   |         |         |         |         |         |       |      |      |      |                                                                                                |
+|1     |        |$r_2(Z)$|        |   |   |   |         |         |0        |         |         |       |      |      |      | $0 = TS(T_2) \geq WT(Z) = -1$ ✅                                                               |
+|2     |        |$r_2(Y)$|        |   |   |   |         |0        |         |         |         |       |      |      |      | $0 = TS(T_2) \geq WT(Y) = -1$ ✅                                                               |
+|3     |        |$w_2(Y)$|        |   |2  |   |         |         |         |         |0        |       |      |      |      | $0 = TS(T_2) \geq RT(Y) = -1$ ✅ $TS(T_2) \geq WT(Y) = -1$ ✅ $\therefore$ escribe-            |
+|4     |        |        |$st_3$  |   |   |   |         |         |         |         |         |       |      |      |      |                                                                                                |
+|5     |        |        |$r_3(Y)$|   |   |   |         |4        |         |         |         |       |      |      |      | 4 = TS(T_3) \geq WT(Y) = TS(T_2) = 3$ ✅                                                       |
+|6     |        |        |$r_3(Z)$|   |   |   |         |         |4        |         |         |       |      |      |      | 4 = TS(T_3) \geq WT(Z) = -1$ ✅                                                                |
+|7     |$st_1$  |        |        |   |   |   |         |         |         |         |         |       |      |      |      |                                                                                                |
+|8     |$r_1(X)$|        |        |   |   |   |7        |         |         |         |         |       |      |      |      | 7 = TS(T_1) \geq WT(X) = -1$ ✅                                                                |
+|9     |$w_1(X)$|        |        |1  |   |   |         |         |         |7        |         |       |      |      |      | $7 = TS(T_1) \geq RT(X) = TS(T_1) = 7$ ✅ $TS(T_1) \geq WT(X) = -1$ ✅ $\therefore$ escribe.   |
+|10    |        |        |$w_3(Y)$|   |3  |   |         |         |         |         |4        |       |      |      |      | $4 = TS(T_3) \geq RT(Y) = 4$ ✅ $TS(T_3) \geq WT(Y) = TS(T_2) = 0$ ✅ $\therefore$ escribe.    |
+|11    |        |        |$w_3(Z)$|   |   |3  |         |         |         |         |         |4      |      |      |      | $4 = TS(T_3) \geq RT(Z) = 4$ ✅ $TS(T_3) \geq WT(Z) = -1$ ✅ $\therefore$ escribe              |
+|12    |        |$r_2(X)$|        |   |   |   |0        |         |         |         |         |       |      |      |      | $0 = TS(T_2) \geq WT(X) = 7$ ❌ *read too late* **rollback** $T_2$ 🔁                          |
+|13    |$r_1(Y)$|        |        |   |   |   |         |7        |         |         |         |       |      |      |      | $7 = TS(T_1) \geq WT(Y) = 4$ ✅                                                                |
+|14    |$w_1(Y)$|        |        |   |1  |   |         |         |         |         |7        |       |      |      |      | $7 = TS(T_1) \geq RT(Y) = 7$ ✅ $7 = TS(T_1) \geq WT(Y) = TS(T_3) = 4$ ✅ $\therefore$ escribe.|
+|15    |$w_1(X)$|        |        |1  |   |   |         |         |         |7        |         |       |      |      |      | $7 = TS(T_1) \geq RT(Y) = 7$ ✅ $7 = TS(T_1) \geq WT(X) = TS(T_1) = 7$ ✅ $\therefore$ escribe.|
+
+$H_2 = st_3; r_3(Y); r_3(Z); st_1; r_1(X); w_1(X); w_3(Y); w_3(Z); st_2; r_2(Z); r_1(Y); w_1(Y);r_2(Y); w_2(Y); r_2(X); w_2(X)$
+
+|tiempo|$T_1$   |$T_2$   |$T_3$   |$X$|$Y$|$Z$|$RT(X)$  |$RT(Y)$  |$RT(Z)$  |$WT(X)$  |$WT(Y)$  |$WT(Z)$|$C(X)$|$C(Y)$|$C(Z)$|Observaciones                                                                                           |
+|:----:|:------:|:------:|:------:|:-:|:-:|:-:|:-------:|:-------:|:-------:|:-------:|:-------:|:-----:|:----:|:----:|:----:|:-------------------------------------------------------------------------------------------------------|
+|      |        |        |        |   |   |   |-1       |-1       |-1       |-1       |-1       |-1     |1     |1     |1     |                                                                                                        |
+|0     |        |        |$st_3$  |   |   |   |         |         |         |         |         |       |      |      |      |                                                                                                        |
+|1     |        |        |$r_3(Y)$|   |   |   |         |0        |         |         |         |       |      |      |      | $0 = TS(T_3) \geq WT(Y) = -1$ ✅                                                                       |
+|2     |        |        |$r_3(Z)$|   |   |   |         |         |0        |         |         |       |      |      |      | $0 = TS(T_3) \geq WT(Z) = -1$ ✅                                                                       |
+|3     |$st_1$  |        |        |   |   |   |         |         |         |         |         |       |      |      |      |                                                                                                        |
+|4     |$r_1(X)$|        |        |   |   |   |3        |         |         |         |         |       |      |      |      | $3 = TS(T_1) \geq WT(X) = -1$ ✅                                                                       |
+|5     |$w_1(X)$|        |        |1  |   |   |         |         |         |3        |         |       |      |      |      | $3 = TS(T_1) \geq RT(X) = - 1 \land TS(T_1) \geq WT(X) = -1$ ✅ $\therefore$ escribe.                  |
+|6     |        |        |$w_3(Y)$|   |3  |   |         |         |         |         |0        |       |      |      |      | $0 = TS(T_3) \geq RT(Y) = 0 \land TS(T_1) \geq WT(Y) = -1$ ✅ $\therefore$ escribe.                    |
+|7     |        |        |$w_3(Z)$|   |   |3  |         |         |         |         |         |0      |      |      |      | $0 = TS(T_3) \geq RT(Z) = -1 \land TS(T_1) \geq WT(Z) = -1$ ✅ $\therefore$ escribe.                   |
+|8     |        |$st_2$  |        |   |   |   |         |         |         |         |         |       |      |      |      |                                                                                                        |
+|9     |        |$r_2(Z)$|        |   |   |   |         |         |8        |         |         |       |      |      |      | $8 = TS(T_2) \geq WT(Z) = TS(T_3) = 0$ ✅                                                              |
+|10    |$r_1(Y)$|        |        |   |   |   |         |3        |         |         |         |       |      |      |      | $3 = TS(T_1) \geq WT(Y) = TS(T_3) = 0$ ✅                                                              |
+|11    |$w_1(Y)$|        |        |   |1  |   |         |         |         |         |3        |       |      |      |      | $3 = TS(T_1) \geq RT(Y) = TS(T_1) \land TS(T_1) \geq WT(Y) = TS(T_3) = 0$ ✅ $\therefore$ escribe.     |
+|12    |        |$r_2(Y)$|        |   |   |   |         |8        |         |         |         |       |      |      |      | $8 = TS(T_2) \geq WT(Y) = TS(T_1) = 3$ ✅                                                              |
+|13    |        |$w_2(Y)$|        |   |2  |   |         |         |         |         |8        |       |      |      |      | $8 = TS(T_2) \geq RT(Y) = TS(T_2) \land TS(T_2) \geq WT(Y) = TS(T_1) = 3$ ✅ $\therefore$ escribe.     |
+|14    |        |$r_2(X)$|        |   |   |   |8        |         |         |         |         |       |      |      |      | $8 = TS(T_2) \geq WT(X) = TS(T_1) = 3$ ✅                                                              |
+|15    |        |$w_2(X)$|        |2  |   |   |         |         |         |8        |         |       |      |      |      | $8 = TS(T_2) \geq RT(X) = TS(T_1) = 3 \land TS(T_2) \geq WT(X) = TS(T_1) = 3$ ✅ $\therefore$ escribe. |
+
+### (b) Modificar una de las historias para adaptarla a un planificador multiversión MV2PL que demore alguna de las transacciones en un paso final
+
+En **MV2PL** se retrasa en un paso final, solo si aún no commitearon todas de las que leyó alguna versión y todas las que leyeron una versión actual (última commiteada) de un ítem que escribió la transacción.
+
+En $H_1$:
+
+- $T_3$ escribe $Z$ y $Y$, mientras que $T_2$ lee versiones actuales de esas variables, por lo que $T_3$ no puede commitear hasta que lo haga $T_2$. Pero como $T_3$ escribe variable que $T_2$ también escribe, entonces debe esperar hasta que $T_2$ commitea para poder escribirla. Si modificamos la historia para que $T_3$ no escriba una variable que también escribe $T_2$ podríamos hacer que $T_3$ continúe hasta su paso final y ahí deba esperar a que $T_3$ termine.
+
+**Original:** $H_1 = st_2; r_2(Z); r_2(Y); w_2(Y); st_3; r_3(Y); r_3(Z); st_1; r_1(X); w_1(X); w_3(Y); w_3(Z);r_2(X); r_1(Y); w_1(Y); w_1(X)$
+
+**Modificada:** $H_1 = st_2; r_2(Z); r_2(Y); w_2(Y); st_3; r_3(Y); r_3(Z); st_1; r_1(X); w_1(X); w_3(X);c_2;c_3; w_3(Z);r_2(X); r_1(Y); w_1(Y); w_1(X)$
+
+![Historia que en MV2PL debe esperar en el paso final.](./images/ej4.b.drawio.svg)
+
+### (c) Modificar una de las historias para que un planificador multiversíon MVTO tenga que hacer rollback
+
+Para que ocurra un **rollback** en **MVTO** una transacción posterior en *timestamp* leyó un valor previo al que estamos escribiendo, *write too late*.
+
+$H_2 = st_3; r_3(Y); r_3(Z); st_1; r_1(X); w_1(X); w_3(Y); w_3(Z); st_2; r_2(Z); r_1(Y); w_1(Y);r_2(Y); w_2(Y); r_2(X); w_2(X)$
+
+Modificando $r_1(X)$ por $r_1(Y)$ sucede que $T_1$ posterior a $T_3$ ($TS(T_1) \gt TS(T_3)$) lee en $Y$ un valor previo al que en la siguiente operación escribe $w_1(X)$, haciendo que $T_1$ caiga en *write too late* y deba hacer **rollback**🔁.
+
+Quedando $H_2 ^\prime = st_3; r_3(Y); r_3(Z); st_1; r_1(Y); w_1(X); w_3(Y); w_3(Z); st_2; r_2(Z); r_1(Y); w_1(Y);r_2(Y); w_2(Y); r_2(X); w_2(X)$
+
+![Historia MVTO con rollback](./images/ej4.5.c.drawio.svg)
+
+## Ejercicio 4.7
+
+> Dadas las siguientes transacciones: $ \\ T_1 = r_1(A);r_1(B);w_1(A) \\ T_2 = r_2(B);r_2(C);w_2(A) \\ T_3 = r_3(C);r_3(B);w_3(B) \\ $ Se pide:
+
+### (a) Realizar una *historia* para un *scheduler basado en timestamp sin multiversión* tal que el orden inicio sea $T_1, T_3, T_2$ y que realice un *rollback* de $T_3$ por un *comportamiento físicamente irrealizable* *write too late* (Nota: No olvidarse de indicar los comienzos de las transacciones)
+
+|tiempo|$T_1$   |$T_2$   |$T_3$   |$A$|$B$|$C$|$RT(A)$  |$RT(B)$  |$RT(C)$  |$WT(A)$  |$WT(B)$  |$WT(C)$|$C(A)$|$C(B)$|$C(C)$|Observaciones                                                                                                                                                                                |
+|:----:|:------:|:------:|:------:|:-:|:-:|:-:|:-------:|:-------:|:-------:|:-------:|:-------:|:-----:|:----:|:----:|:----:|:--------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------|
+|      |        |        |        |   |   |   |-1       |-1       |-1       |-1       |-1       |-1     |1     |1     |1     |                                                                                                                                                                                             |
+|0     |$st_1$  |        |        |   |   |   |         |         |         |         |         |       |      |      |      |                                                                                                                                                                                             |
+|1     |$r_1(A)$|        |        |   |   |   |0        |         |         |         |         |       |      |      |      |$0 = TS(T_1) \geq WT(A) = -1$✅ $\therefore$ lectura realizable.                                                                                                                             |
+|2     |$r_1(B)$|        |        |   |   |   |         |0        |         |         |         |       |      |      |      |$0 = TS(T_1) \geq WT(B) = -1$✅ $\therefore$ lectura realizable.                                                                                                                             |
+|3     |        |        |$st_3$  |   |   |   |         |         |         |         |         |       |      |      |      |                                                                                                                                                                                             |
+|4     |        |        |$r_3(C)$|   |   |   |         |         |3        |         |         |       |      |      |      |$3 = TS(T_3) \geq WT(C) = -1$✅ $\therefore$ lectura realizable.                                                                                                                             |
+|5     |        |        |$r_3(B)$|   |   |   |         |3        |         |         |         |       |      |      |      |$3 = TS(T_3) \geq WT(B) = -1$✅ $\therefore$ lectura realizable.                                                                                                                             |
+|6     |        |$st_2$  |        |   |   |   |         |         |         |         |         |       |      |      |      |                                                                                                                                                                                             |
+|7     |        |$r_2(B)$|        |   |   |   |         |6        |         |         |         |       |      |      |      |$6 = TS(T_2) \geq WT(C) = -1$✅ $\therefore$ lectura realizable.                                                                                                                             |
+|8     |        |$r_2(C)$|        |   |   |   |         |         |6        |         |         |       |      |      |      |$6 = TS(T_2) \geq WT(B) = -1$✅ $\therefore$ lectura realizable.                                                                                                                             |
+|9     |        |        |$w_3(B)$|   |   |3  |         |         |         |         |3        |       |      |      |      |$3 = TS(T_3) \geq RT(B) = 6$ *write too late* $\therefore$ **rollback**🔁 $T_3$.                                                                                                             |
+|10    |        |$w_2(A)$|        |   |2  |   |         |         |         |6        |         |       |0     |      |      |$6 = TS(T_2) \geq RT(A) = TS(T_1) = 0 \land TS(T_2) \geq WT(A) = TS(T_1) = 0$ ✅$\therefore$ escritura realizable.                                                                           |
+|11    |$w_1(A)$|        |        |   |   |   |         |         |         |         |         |       |      |      |      |$0 = TS(T_1) \geq RT(A) = TS(T_1) \land TS(T_1) \lt WT(A) = TS(T_2) = 6$ $\therefore$ debe esperar a que $T_1$ se complete ⏸️, si esta commitea ignoramos la escritura, sino la reintentamos.|
+|12    |        |c_2     |        |   |   |   |         |         |         |         |         |       |1     |      |      |$T_2$ commiteó, por lo que podemos ignorar la escritura $w_1(A)$ por *Thomas write rule*.                                                                                                    |
+|13    |c_1     |        |        |   |   |   |         |         |         |         |         |       |      |      |      ||
+
+## Ejercicio 4.7
+
+> Dada la siguiente historia de un planificado con timestamp MVTO (Multiversion Time Ordering): $ \\ H = st_1; st_2; r_2(X); st_3; st_4; r_1(Y); r_4(Z); w_3(X); w_3(Y); w_4(Z); w_2(X); w_1(Y); r_3(Z) \\ $ Suponer que $t_1$ escribe $Y = 10$, $t_2$ escribe $X = 8$, $t_3$ escribe $X = 2$ e $Y = 4$, $t_4$ escribe $Z = 6$ Asumir que si una transacción finaliza exitosamente, realiza commit inmediatamente después de la última operación. Responder verdadero o falso
+
+![MVTO](./images/ej4.7.drawio.svg)
+
+- Verdadero. Al final de la ejecucion de $H, X = 2, Y = 4$ y $Z = 6$.
+- False. $T_3$ aborta por *read too late*.
+- False. Al final de la ejecucion de $H_1, X = 8, Y = 10$ y $Z = 6$.
+- Falso. $T_1$ y $T_2$ abortan por *write too late*.
+- Verdadero. $T_1$ y $T_2$ realizan *commit* antes que $T_3$.
+
+>[!IMPORTANT]
+> Consultar si al final de la ejecución quedan las variables con los valores que puso la última en orden por timestamp, i.e. la más reciente.
 
 [1] [A Critique of ANSI SQL Isolation Levels](https://arxiv.org/pdf/cs/0701157)
 

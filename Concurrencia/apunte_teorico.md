@@ -451,12 +451,12 @@ Los posibles protocolos son:
 - En caso de escrituras $w_i(X)$:
   - Si $r_j(x_k)$ tal que $TS(T_k) \lt TS(T_i) \lt TS(T_j)$ ya existe en el *schedule*, entonces rechazamos $w_i(X)$ y abortamos $T_i$ por [*write too late*](#comportamiento-físicamente-irrealizable). Es decir, *si una transacción posterior ya leyó valor escrito por una previa a nosotros, nos abortan*.
   - Sino transformamos $w_i(X)$ en $w_i(X_i)$ y la ejecutamos. Es decir, *creamos nueva versión*.
-- En *commits* $c_i$, lo retrasamos hasta que todas las transacciones $t_j$ que escribieron nuevas versiones de lo que leyó $t_i$ commiteen. (Evita [*dirty reads*](#dirty-reads))
+- En *commits* $c_i$, lo retrasamos hasta que todas las transacciones $t_j$ que escribieron versiones de lo que leyó $t_i$ commiteen. (Evita [*dirty reads*](#dirty-reads))
 
 ##### Multiversion Two Phase Locking (**MV2PL**)
 
 >[!IMPORTANT]
-> Al igual que [2VPL](#2pl-two-phase-locking) no evita *deadlocks*. (2V2PL tampoco)
+> Al igual que [2VPL](#2pl-two-phase-locking) no evita *deadlocks*. (2V2PL tampoco) ![Ejemplo de deadlock en MV2PL](./images/ejemplo_deadlock_en_MV2PL.drawio.svg)
 
 - Protocolo basado en *locking*, usa [*2PL riguroso*](#2plr-o-ss2pl-rigurous-two-phase-locking)
 - Los ítems $X$ tienen:
