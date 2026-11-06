@@ -96,6 +96,8 @@ Explicación del plan:
 
 ## Ejercicio 0.4
 
+### Índices ProductVendor
+
 |tabla        |columna         |indice                                     |tipo        |is_unique |
 |-------------|----------------|-------------------------------------------|------------|----------|
 |ProductVendor|BusinessEntityID|IX_ProductVendor_BusinessEntityID          |NONCLUSTERED|0         |
@@ -103,6 +105,8 @@ Explicación del plan:
 |ProductVendor|BusinessEntityID|PK_ProductVendor_ProductID_BusinessEntityID|CLUSTERED   |1         |
 |ProductVendor|ProductID       |PK_ProductVendor_ProductID_BusinessEntityID|CLUSTERED   |1         |
 
+
+### Índices Vendor
 
 |tabla     |columna         |indice                    |tipo        |is_unique |
 |----------|----------------|--------------------------|------------|----------|
@@ -115,7 +119,7 @@ Explicación del plan:
 - De `Vendor` necesita los atributos `Name` y `BusinessEntityID`. Solo `BusinessEntityID` es clave.
 - Ningún índice cubre por completo a los atributos `Name` y `BusinessEntityID`, así que hace un *clustered index scan* con el índice `PK_Vendor_BusinessEntityID` para obtener toda la tabla y termina retornando los `Name` y `BusinessEntityID` para cada entrada.
 - Para `ProductVendor` también estima leer toda la tabla, por lo que conviene un *scan*.
-- Solo le interesan los atributos `BusinessEntityID` de ella, entonces le conviene utilizar el *índice unclustered* `IX_ProductVendor_BusinessEntityID` ya que es el más chico que cubre la consulta en comparación con el *índice clustered* `PK_ProductVendor_ProductID_BusinessEntityID`.
+- Solo le interesan los atributos `BusinessEntityID` y `ProductID` de ella, entonces le conviene utilizar el *índice unclustered* `IX_ProductVendor_BusinessEntityID` ya que es el más chico que cubre la consulta en comparación con el *índice clustered* `PK_ProductVendor_ProductID_BusinessEntityID`. Del índice `IX_ProductVendor_BusinessEntityID` puede obtener `BusinessEntityID` y `ProductID`, ya que en `ProductVendor` esos son sus claves y por ser una tabla con *clustered index* tienen sus valores en sus hojas.
 - Como ambos índices `IX_ProductVendor_BusinessEntityID` y `PK_Vendor_BusinessEntityID` vienen ordenados por `BusinessEntityID` que es el atributo por el que se hace el `JOIN`, entonces puede realizar un *merge join* de ambos.
 
 ### Segunda query
@@ -126,8 +130,8 @@ Explicación del plan:
 - Conviene directamente recorrer todas las filas desde el *índice clustered* y sobre ellas aplicar la condición del `WHERE` para acabar proyectando solo los atributos `ProductID` y `BusinessEntityID`, como vemos en `Output List`.
 - Respecto al *hash join*:
   - La primer entrada es de 104 filas, por lo que es una cantidad reducida que puede entrar en la tabla de hash almacenada en memoria.
-  - Al hacer hash puede, una vez creó la tabla de hash en memoria probar con cada fila de las 412 para ver cuáles matchean.
-  - Los planes se ejecutan de izquierda  a derecha, si usara *nested loops* tendría que hacer $104*412$ chequeos, además de que los chequeos para la tabla `ProductVendor` son sobre un *clustered index* y no sobre uno *unclustered* sobre el que pudiera hacer *seek*.
+  - Al hacer hash puede, una vez creó la tabla de hash en memoria puede probar con cada fila de las 460 para ver cuáles matchean, recorriendolas una sola vez, por lo que termina viendo 104+460 filas.
+  - Los planes se ejecutan de izquierda a derecha, pero el flujo de datos es de derecha a izquierda. Si usara *nested loops* tendría que hacer $104*460$ chequeos, además de que los chequeos para la tabla `ProductVendor` son sobre un *clustered index* al que debe escanear para obtener los distintos `BusinessEntityID` y no sobre uno *nonclustered* con `BusinessEntityID` como clave sobre el que pudiera hacer *seek*.
 
 ### Tercer query
 
