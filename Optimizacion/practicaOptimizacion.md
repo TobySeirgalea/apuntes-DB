@@ -149,6 +149,63 @@ En la tercera tiene forma de acceder directo con un indice a la fila que matchee
 
 ## Ejercicio 0.5
 
+### Índice `Product`
+
+|tabla     |columna      |indice                  |tipo        |is_unique |
+|----------|-------------|------------------------|------------|----------|
+|Product   |Name         |AK_Product_Name         |NONCLUSTERED|1         |
+|Product   |ProductNumber|AK_Product_ProductNumber|NONCLUSTERED|1         |
+|Product   |rowguid      |AK_Product_rowguid      |NONCLUSTERED|1         |
+|Product   |ProductID    |PK_Product_ProductID    |CLUSTERED   |1         |
+
+### Columnas `Product`
+
+|TABLE_NAME|COLUMN_NAME          |IS_NULLABLE|DATA_TYPE       |
+|----------|---------------------|-----------|----------------|
+|Product   |ProductID            |NO         |int             |
+|Product   |Name                 |NO         |nvarchar        |
+|Product   |ProductNumber        |NO         |nvarchar        |
+|Product   |MakeFlag             |NO         |bit             |
+|Product   |FinishedGoodsFlag    |NO         |bit             |
+|Product   |Color                |YES        |nvarchar        |
+|Product   |SafetyStockLevel     |NO         |smallint        |
+|Product   |ReorderPoint         |NO         |smallint        |
+|Product   |StandardCost         |NO         |money           |
+|Product   |ListPrice            |NO         |money           |
+|Product   |Size                 |YES        |nvarchar        |
+|Product   |SizeUnitMeasureCode  |YES        |nchar           |
+|Product   |WeightUnitMeasureCode|YES        |nchar           |
+|Product   |Weight               |YES        |decimal         |
+|Product   |DaysToManufacture    |NO         |int             |
+|Product   |ProductLine          |YES        |nchar           |
+|Product   |Class                |YES        |nchar           |
+|Product   |Style                |YES        |nchar           |
+|Product   |ProductSubcategoryID |YES        |int             |
+|Product   |ProductModelID       |YES        |int             |
+|Product   |SellStartDate        |NO         |datetime        |
+|Product   |SellEndDate          |YES        |datetime        |
+|Product   |DiscontinuedDate     |YES        |datetime        |
+|Product   |rowguid              |NO         |uniqueidentifier|
+|Product   |ModifiedDate         |NO         |datetime        |
+
+### Índice `ProductSubcategory`
+
+|Tabla             |Columna             |Indice                                    |Tipo        |is_unique |
+|------------------|--------------------|------------------------------------------|------------|----------|
+|ProductSubcategory|Name                |AK_ProductSubcategory_Name                |NONCLUSTERED|1         |
+|ProductSubcategory|rowguid             |AK_ProductSubcategory_rowguid             |NONCLUSTERED|1         |
+|ProductSubcategory|ProductSubcategoryID|PK_ProductSubcategory_ProductSubcategoryID|CLUSTERED   |1         |
+
+### Columnas `ProductSubcategory`
+
+|TABLE_NAME        |COLUMN_NAME         |IS_NULLABLE|DATA_TYPE       |
+|------------------|--------------------|-----------|----------------|
+|ProductSubcategory|ProductSubcategoryID|NO         |int             |
+|ProductSubcategory|ProductCategoryID   |NO         |int             |
+|ProductSubcategory|Name                |NO         |nvarchar        |
+|ProductSubcategory|rowguid             |NO         |uniqueidentifier|
+|ProductSubcategory|ModifiedDate        |NO         |datetime        |
+
 ### Primer query
 
 - `ProductSubcategory` tiene un índice que cubre la consulta: `AK_ProductSubcategory_Name` con el que puede obtener `Name` y también `ProductSubcategoryID` por ser su clave y tener índice clustered.
@@ -156,4 +213,122 @@ En la tercera tiene forma de acceder directo con un indice a la fila que matchee
 - Estima que va a tener que retornar todas las filas, por lo que conviene un *scan*.
 - Respecto a `Product` también estima que va a tener que retornar toda la tabla, por lo que conviene un *scan*.
 - Si bien el índice AK_Poduct_Name tiene la calve y ese atributo, no tiene el atributo productSubcategoryID por el que debe hacer el join, entonces al no cubrir la consulta le conviene usar directo el clustered index.
-- Como el outer input es chico (37 filas de 65B), entra en memoria y como no tiene forma de acceder directo con el subcategory id porque necesitaba también el name, entonces tuvo que usar el indice clustered, por lo que al tener que recorrerlo todo, conviene hacerlo una sola vez, tras poner todos los del outer en la hash table en vez de hacerlo 37 veces comoo lo haría si usara un nested loop.
+- Como el outer input es chico (37 filas de 65B), entra en memoria y como no tiene forma de acceder directo con el subcategory id porque necesitaba también el name, entonces tuvo que usar el indice clustered, por lo que al tener que recorrerlo todo, conviene hacerlo una sola vez, tras poner todos los del outer en la hash table en vez de hacerlo 37 veces por cada una de las 504 filas que estima, como lo haría si usara un nested loop.
+
+### Segunda query
+
+- Se pide que los resultados estén ordenados por `ProductSubcategoryID`.
+- Como `ProductSubcategoryID` es clave de la tabla ProductSubcategory` y solo tiene el índice *clustered* que lo tenga como clave utiliza ese, ya que está ordenado por ese atributo. Como va a tener que leer toda la tabla le conviene directamente hacer un *scan*.
+- Para las filas de `Product` no cuenta con un índice con clave `ProductSubcategoryID` y tampoco es clave de la tabla, así que necesita obtenerlo del índice *clustered* con un *scan*. Como el índice *clustered* está ordenado por `ProductID` y no por `ProductSubcategoryID`, necesita aplicar un *sort*. Como resultado del *sort* obtiene todas las filas de la tabla `Product` ordenadas por `ProductSubcategoryID`.
+- Para retornar las filas ordenadas por `ProductSubcategoryID`, necesita aplicar un *merge join* sobre las filas que vienen ordenadas de `ProductSubcategory` y las de `Product` sobre el atributo `ProductSubcategoryID`. Al estar ambas ordenadas sobre el atributo con el que se hace el *join* este tipo de *join* permite hacerse recorriendo ambas en simultáneo en un recorrido de 504+37 filas. Si usara un hash join no tiene garantías de preservar el orden, y si usara un nested loop no solo que no tiene garantías de preservar el orden, sino que sería muchas más iteraciones y necesitaría un table spoon para almacenar y poder acceder rapidamente a los resultados del sort.
+
+## Ejercicio 0.6
+
+### Índices `Person`
+
+|tabla     |columna              |indice                                 |tipo        |is_unique |
+|----------|---------------------|---------------------------------------|------------|----------|
+|Person    |rowguid              |AK_Person_rowguid                      |NONCLUSTERED|1         |
+|Person    |FirstName            |IX_Person_LastName_FirstName_MiddleName|NONCLUSTERED|0         |
+|Person    |LastName             |IX_Person_LastName_FirstName_MiddleName|NONCLUSTERED|0         |
+|Person    |MiddleName           |IX_Person_LastName_FirstName_MiddleName|NONCLUSTERED|0         |
+|Person    |BusinessEntityID     |PK_Person_BusinessEntityID             |CLUSTERED   |1         |
+|Person    |AdditionalContactInfo|PXML_Person_AddContact                 |XML         |0         |
+|Person    |Demographics         |PXML_Person_Demographics               |XML         |0         |
+|Person    |Demographics         |XMLPATH_Person_Demographics            |XML         |0         |
+|Person    |Demographics         |XMLPROPERTY_Person_Demographics        |XML         |0         |
+|Person    |Demographics         |XMLVALUE_Person_Demographics           |XML         |0         |
+
+### Columnas `Person`
+
+|TABLE_NAME|COLUMN_NAME          |IS_NULLABLE|DATA_TYPE       |
+|----------|---------------------|-----------|----------------|
+|Person    |BusinessEntityID     |NO         |int             |
+|Person    |PersonType           |NO         |nchar           |
+|Person    |NameStyle            |NO         |bit             |
+|Person    |Title                |YES        |nvarchar        |
+|Person    |FirstName            |NO         |nvarchar        |
+|Person    |MiddleName           |YES        |nvarchar        |
+|Person    |LastName             |NO         |nvarchar        |
+|Person    |Suffix               |YES        |nvarchar        |
+|Person    |EmailPromotion       |NO         |int             |
+|Person    |AdditionalContactInfo|YES        |xml             |
+|Person    |Demographics         |YES        |xml             |
+|Person    |rowguid              |NO         |uniqueidentifier|
+|Person    |ModifiedDate         |NO         |datetime        |
+
+### Primer query
+
+- `NameStyle` no puede ser `NULL` y como no tiene `DISTINCT NameStyle`, entonces debo contarlos todos, así que no me queda otra que hacer un *scan* para toda la tabla ya que, implícitamente, me están pidiendo que cuente la cantidad de filas.
+- Como el índice *clustered* almacena toda las columnas, su tamaño va a ser mayor en bytes (9 bytes contra 19 bytes) que el del índice *nonclustered* `AK_Person_rowguid`, y como ambos atributos son *unique*, entonces habrá un valor distinto de `rowguid` para cada fila, así que haciendo un *index scan* sobre ese índice puedo contarlas, de forma más óptima.
+- Luego se aplica el *stream aggregator* para realizar el `COUNT` y un *compute scalar* para castear el resultado a *int*.
+
+### Segunda query
+
+- `Title` puede ser `NULL`.
+- La función de agregación `COUNT(*)` tiene en cuenta los `NULL`, pero `COUNT(ATTR)` con `ATTR` un atributo cualquiera los ignora.
+- Entonces en este caso nos interesa no contar los que tengan `Title = NULL`, para eso necesitamos ese atributo y como no tenemos índice sobre él, debemos obtenerlo de la tabla con el *indice clustered*.
+- Luego se aplica el *stream aggregator* para realizar el `COUNT` y un *compute scalar* para castear el resultado a *int*.
+
+## Ejercicio 0.7
+
+### Índices `Employee`
+
+|tabla     |columna          |indice                                        |tipo        |is_unique |
+|----------|-----------------|----------------------------------------------|------------|----------|
+|Employee  |LoginID          |AK_Employee_LoginID                           |NONCLUSTERED|1         |
+|Employee  |NationalIDNumber |AK_Employee_NationalIDNumber                  |NONCLUSTERED|1         |
+|Employee  |rowguid          |AK_Employee_rowguid                           |NONCLUSTERED|1         |
+|Employee  |OrganizationNode |IX_Employee_OrganizationLevel_OrganizationNode|NONCLUSTERED|0         |
+|Employee  |OrganizationLevel|IX_Employee_OrganizationLevel_OrganizationNode|NONCLUSTERED|0         |
+|Employee  |OrganizationNode |IX_Employee_OrganizationNode                  |NONCLUSTERED|0         |
+|Employee  |BusinessEntityID |PK_Employee_BusinessEntityID                  |CLUSTERED   |1         |
+
+### Columnas `Employee`
+
+|TABLE_NAME|COLUMN_NAME      |IS_NULLABLE|DATA_TYPE       |
+|----------|-----------------|-----------|----------------|
+|Employee  |BusinessEntityID |NO         |int             |
+|Employee  |NationalIDNumber |NO         |nvarchar        |
+|Employee  |LoginID          |NO         |nvarchar        |
+|Employee  |OrganizationNode |YES        |hierarchyid     |
+|Employee  |OrganizationLevel|YES        |smallint        |
+|Employee  |JobTitle         |NO         |nvarchar        |
+|Employee  |BirthDate        |NO         |date            |
+|Employee  |MaritalStatus    |NO         |nchar           |
+|Employee  |Gender           |NO         |nchar           |
+|Employee  |HireDate         |NO         |date            |
+|Employee  |SalariedFlag     |NO         |bit             |
+|Employee  |VacationHours    |NO         |smallint        |
+|Employee  |SickLeaveHours   |NO         |smallint        |
+|Employee  |CurrentFlag      |NO         |bit             |
+|Employee  |rowguid          |NO         |uniqueidentifier|
+|Employee  |ModifiedDate     |NO         |datetime        |
+
+### Índices `JobCandidate`
+
+|tabla       |columna         |indice                          |tipo        |is_unique |
+|------------|----------------|--------------------------------|------------|----------|
+|JobCandidate|BusinessEntityID|IX_JobCandidate_BusinessEntityID|NONCLUSTERED|0         |
+|JobCandidate|JobCandidateID  |PK_JobCandidate_JobCandidateID  |CLUSTERED   |1         |
+
+### Columnas `JobCandidate`
+
+|TABLE_NAME  |COLUMN_NAME     |IS_NULLABLE|DATA_TYPE |
+|------------|----------------|-----------|----------|
+|JobCandidate|JobCandidateID  |NO         |int       |
+|JobCandidate|BusinessEntityID|YES        |int       |
+|JobCandidate|Resume          |YES        |xml       |
+|JobCandidate|ModifiedDate    |NO         |datetime  |
+
+### Primer query
+
+- Me pide en el `SELECT` un atributo que no es clave y sobre el cual no tengo índice, que es `Resume`, así que no me queda otra que hacer un *index scan* del *clustered index* `PK_JobCandidate_JobCandidateID`. Además al pedirmelos todos y no filtrar con un `WHERE`, solo puedo hacer un *scan* de la tabla.
+- Como me piden que las filas resultantes estén ordenadas por `BusinessEntityID` que no es clave *clustered index* de `PK_JobCandidate_JobCandidateID` y por `JobCandidateID`, entonces tenemos que hacer un *sort* por esos atributos.
+- Como ambos inputs del `JOIN` están ordenados por la clave sobre la que se hace el `JOIN` y los que nos piden en `ORDER BY`, entonces podemos aprovechar que podemos hacer *index seek* sobre el input de abajo y utilizar un *nested loop* que nos requeriría un *seek* (rows read per execution = 1) por cada una de las 13 filas del input superior, en lugar de los 13+13 que nos requeriría un *merge join*.
+
+### Segunda query
+
+- Me pide en el `SELECT` un atributo que es clave de la tabla `JobCandidate`, además como la condición del `JOIN` es sobre el atributo `BusinessEntityID`, sobre el cual tengo el *índice nonclustered* `IX_JobCandidate_BusinessEntityID`, puedo directamente hacer un *index scan* de él, aprovechando que en sus hojas se encuentra el valor de la clave `JobCandidateID` y obtener todos lo que necesito escaneando ese índice que encima es de menor tamaño que el *clustered index* (4043 bytes vs. 13 bytes).
+- Como la tabla `Employee` tiene como clave a `BusinessEntityID` y tiene un *índice clustered* cualquier índice me sirve para obtener esa información, pero como quiero hacer un `JOIN` sobre el atributo `BusinessEntityID` me conviene usar el *clustered index*, ya que está ordenado por `BusinessEntityID` y eso me va a servir para poder cumplir con el requisito del órden por `BusinessEntityID`. Además al estar ordenado por el atributo sobre el que se hace el `JOIN`, se puede hacer un *index seek*, en lugar de un *scan*.
+- Como ambos inputs del `JOIN` están ordenados por la clave sobre la que se hace el `JOIN` y los que nos piden en `ORDER BY`, entonces podemos aprovechar que podemos hacer *index seek* sobre el input de abajo y utilizar un *nested loop* que nos requeriría un *seek* (rows read per execution = 1) por cada una de las 13 filas del input superior, en lugar de los 13+13 que nos requeriría un *merge join*.

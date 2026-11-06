@@ -233,7 +233,7 @@ Se lo trata como un valor cualquiera, por lo que podemos tener un grupo con tupl
 
 #### Restricciones sobre **SELECT**, **HAVING** y **ORDER BY** si hay **GROUP BY**
 
-- Dentro de las [funciones de agregación](#aggregation)de puede usar cualquiera de los atributos de las relaciones que aparezcan en el **FROM**, ya sea en este nivel o en uno superior si es una *subquery*.
+- Dentro de las [funciones de agregación](#aggregation) se puede usar cualquiera de los atributos de las relaciones que aparezcan en el **FROM**, ya sea en este nivel o en uno superior si es una [*subquery*](#subqueries).
 - Para el **SELECT** y para el **HAVING** sólo puede tener atributos fuera de [funciones de agregación](#aggregation) si aparecen en la lista de atributos del **GROUP BY**.
 
 ## Keywords y su significado
