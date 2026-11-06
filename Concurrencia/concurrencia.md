@@ -1581,7 +1581,7 @@ Quedando $H_2 ^\prime = st_3; r_3(Y); r_3(Z); st_1; r_1(Y); w_1(X); w_3(Y); w_3(
 - Verdadero. $T_1$ y $T_2$ realizan *commit* antes que $T_3$.
 
 >[!IMPORTANT]
-> Consultar si al final de la ejecución quedan las variables con los valores que puso la última en orden por timestamp, i.e. la más reciente.
+> Consultar si al final de la ejecución quedan las variables con los valores que puso la última en orden por timestamp, i.e. la más reciente. RTA: Deberían coincidir, sino hiciste algo mal.
 
 [1] [A Critique of ANSI SQL Isolation Levels](https://arxiv.org/pdf/cs/0701157)
 
