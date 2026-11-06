@@ -130,13 +130,30 @@ Explicación del plan:
 - Conviene directamente recorrer todas las filas desde el *índice clustered* y sobre ellas aplicar la condición del `WHERE` para acabar proyectando solo los atributos `ProductID` y `BusinessEntityID`, como vemos en `Output List`.
 - Respecto al *hash join*:
   - La primer entrada es de 104 filas, por lo que es una cantidad reducida que puede entrar en la tabla de hash almacenada en memoria.
-  - Al hacer hash puede, una vez creó la tabla de hash en memoria puede probar con cada fila de las 460 para ver cuáles matchean, recorriendolas una sola vez, por lo que termina viendo 104+460 filas.
-  - Los planes se ejecutan de izquierda a derecha, pero el flujo de datos es de derecha a izquierda. Si usara *nested loops* tendría que hacer $104*460$ chequeos, además de que los chequeos para la tabla `ProductVendor` son sobre un *clustered index* al que debe escanear para obtener los distintos `BusinessEntityID` y no sobre uno *nonclustered* con `BusinessEntityID` como clave sobre el que pudiera hacer *seek*.
+  - Al hacer hash puede, una vez creó la tabla de hash en memoria puede probar con cada fila de las 412 para ver cuáles matchean, recorriendolas una sola vez, por lo que termina viendo 104+412 filas.
+  - Los planes se ejecutan de izquierda a derecha, pero el flujo de datos es de derecha a izquierda. Si usara *nested loops* tendría que hacer $104*412$ chequeos, además de que los chequeos para la tabla `ProductVendor` son sobre un *clustered index* al que debe escanear para obtener los distintos `BusinessEntityID` porque se debe quedar con los que cumplan que `StandardPrice > $10`.
 
 ### Tercer query
 
 - Se agrega una condición al `WHERE` sobre el atributo `Name` de `Vendor`.
-- Como no hay ningún índice que cubra los atributos `Name` y `BusinessEntityID` de `Vendor`, debe hacer un *scan* ya que no puede hacer un *seek* al no tener índice sobre `Name`. Elige hacer un *clustered index scan* y obtener `ProductID` de los que cumplan la condición de `Name LIKE N'F%'`.
+- Como no hay ningún índice que cubra los atributos `Name` y `BusinessEntityID` de `Vendor`, debe hacer un *scan* ya que no puede hacer un *seek* al no tener índice sobre `Name`. Elige hacer un *clustered index scan* y obtener `BusinessEntityID` de los que cumplan la condición de `Name LIKE N'F%'`. Si usara un *hash join* debería chequear todas las filas de *probe*, que son 460, contra las 7 entradas de la *hash table*.
 - Como el *outer input* del `JOIN` es chico, solo 7 filas y tiene un índice sobre el atributo a joinear en `ProductVendor`, que es `IX_ProductVendor_BusinessEntityID`, por lo que dado el valor de `BusinessEntityID` *outer input* buscar qué fila de `ProductVendor` matchea con ese `BusinessEntityID` se puede realizar con un *seek* de forma directa, no como en [segunda query](#segunda-query-1) donde teníamos que hacer un *clustered index scan*.
-- Sobre esas filas que cumplen la condición de *join* y  `Name LIKE N'F%'` resultantes del *join* hace un *Key lookup* con los valores de `ProductID` y de `BusinessEntityID` para traer los de `standarPrince`, pero sobre ellos aplica el predicado del `WHERE StandardPrice > $10`.
+- Sobre esas filas que cumplen la condición de *join* y  `Name LIKE N'F%'` resultantes del *join* hace un *Key lookup* con los valores de `ProductID` y de `BusinessEntityID` para traer los de `StandardPrice`, pero sobre ellos aplica el predicado del `WHERE StandardPrice > $10`.
 - Finalmente los junta con sus datos provenientes del anterior *nested loop* y los retorna.
+
+En la primer query tiene para ambas tablas índices ordenados por el atributo de join, entonces conviene *merge join*.
+
+En la segunda no están ordenadas, por lo que no puede hacer merge. Tampoco tiene una forma de acceder directo a las que matcheen con outer input como para hacer un nested loop efectivamente, ya que tiene que recorrer todas las del probe, usa hash.
+
+En la tercera tiene forma de acceder directo con un indice a la fila que matchee sin necesidad de hacer un recorrido por todas las del inner input por lo que es óptimo un nested.
+
+## Ejercicio 0.5
+
+### Primer query
+
+- `ProductSubcategory` tiene un índice que cubre la consulta: `AK_ProductSubcategory_Name` con el que puede obtener `Name` y también `ProductSubcategoryID` por ser su clave y tener índice clustered.
+- No le conviene usar el clustered directo porque al tener más atributos, es más grande.
+- Estima que va a tener que retornar todas las filas, por lo que conviene un *scan*.
+- Respecto a `Product` también estima que va a tener que retornar toda la tabla, por lo que conviene un *scan*.
+- Si bien el índice AK_Poduct_Name tiene la calve y ese atributo, no tiene el atributo productSubcategoryID por el que debe hacer el join, entonces al no cubrir la consulta le conviene usar directo el clustered index.
+- Como el outer input es chico (37 filas de 65B), entra en memoria y como no tiene forma de acceder directo con el subcategory id porque necesitaba también el name, entonces tuvo que usar el indice clustered, por lo que al tener que recorrerlo todo, conviene hacerlo una sola vez, tras poner todos los del outer en la hash table en vez de hacerlo 37 veces comoo lo haría si usara un nested loop.

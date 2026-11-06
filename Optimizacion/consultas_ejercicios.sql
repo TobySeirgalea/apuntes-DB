@@ -31,11 +31,24 @@
 --         ON (PPV.BusinessEntityID =PV.BusinessEntityID)
 -- WHERE StandardPrice > $10
 
-SELECT ProductID, PV.BusinessEntityID, Name
-FROM Purchasing.ProductVendor PPV 
-    JOIN Purchasing.Vendor PV
-        ON (PPV.BusinessEntityID =PV.BusinessEntityID)
-WHERE StandardPrice > $10 AND Name LIKE N'F%'
+-- SELECT ProductID, PV.BusinessEntityID, Name
+-- FROM Purchasing.ProductVendor PPV 
+--     JOIN Purchasing.Vendor PV
+--         ON (PPV.BusinessEntityID =PV.BusinessEntityID)
+-- WHERE StandardPrice > $10 AND Name LIKE N'F%'
+
+
+--Ejercicio 4:
+SELECT P.Name, PSC.Name SubCatrom
+FROM Production.Product P
+JOIN Production.ProductSubcategory PSC
+ON p.ProductSubcategoryID = psc.ProductSubcategoryID
+
+SELECT P.Name, PSC.Name SubCatrom
+FROM Production.Product P
+JOIN Production.ProductSubcategory PSC
+ON p.ProductSubcategoryID = psc.ProductSubcategoryID
+ORDER BY psc.ProductSubcategoryID
 
 --Queries auxiliares:
 
