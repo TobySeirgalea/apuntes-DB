@@ -1306,7 +1306,7 @@ Luego de que $T_1$ termina, podríamos reintentar $T_2$ y ya no habría conflict
 > CORREGIR ES WRITE TOO LATE NO READ TOO LATE
  
 >[!IMPORTANT]
-> En este caso no nos dan los commits en las historias, si $T_2$ hiciera commit antes que $T_1$ escriba $B$ no debería abortar no?
+> En este caso no nos dan los commits en las historias, si $T_2$ hiciera commit antes que $T_1$ escriba $B$ no debería abortar no? RTA: $T_2$ NO PUEDE COMMITEAR ANTES QUE $T_1$. 
 
 **Para $H_3$**:
 
