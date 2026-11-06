@@ -1303,6 +1303,9 @@ Luego de que $T_1$ termina, podríamos reintentar $T_2$ y ya no habría conflict
 ![MVTO para H_2](./images/ej4.1h2.drawio.svg)
 
 >[!IMPORTANT]
+> CORREGIR ES WRITE TOO LATE NO READ TOO LATE
+ 
+>[!IMPORTANT]
 > En este caso no nos dan los commits en las historias, si $T_2$ hiciera commit antes que $T_1$ escriba $B$ no debería abortar no?
 
 **Para $H_3$**:
