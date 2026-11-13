@@ -257,7 +257,7 @@ Si $T_i$ quiere realizar un lock sobre un item y no puede porque $T_j$ ya tiene 
 - No waiting (NW): Si no puede obtener lock que necesita → la abortan y que se reinicie después de un periodo de tiempo. Genera muchos *aborts*.
 - Cautious waiting (CW): Querés un ítem que tiene otra transacción $T ^\prime$, si esa no está esperando un ítem que tiene otra, entonces te dejo esperar, sino *abort* y intentá más tarde. Es *deadlock free*.
 
-## Paradigma pesimista
+## Paradigma optimista
 
 **Clave**: Asumir que no ocurrirá comportamiento no serializable y solo actuar para reparar el problema cuando aparece una violación.
 
